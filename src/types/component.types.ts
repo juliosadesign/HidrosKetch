@@ -1,7 +1,3 @@
-// Tipos dos objetos visuais/técnicos do HidroSketch.
-// Nesta Sprint, esses tipos ainda não são desenhados na tela.
-// Eles são a base para editor, validação e cálculo nas próximas sprints.
-
 export type ComponentKind =
   | "pipe"
   | "accessory"
@@ -18,7 +14,10 @@ export type CanvasPosition = {
   y: number;
 };
 
-export type FlowDirection = "source-to-target" | "target-to-source" | "undefined";
+export type FlowDirection =
+  | "source-to-target"
+  | "target-to-source"
+  | "undefined";
 
 export type ComponentVisualData = {
   rotationDeg: number;
@@ -176,11 +175,7 @@ export type JunctionComponent = BaseComponent & {
 // INSTRUMENT / INSTRUMENTO
 // -------------------------
 
-export type InstrumentType =
-  | "pressure"
-  | "flow"
-  | "level"
-  | "head_loss";
+export type InstrumentType = "pressure" | "flow" | "level" | "head_loss";
 
 export type InstrumentComponent = BaseComponent & {
   kind: "instrument";

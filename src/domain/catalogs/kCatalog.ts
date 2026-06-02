@@ -31,3 +31,26 @@ export const UNIT_LABELS = {
     m: "m",
   },
 };
+
+export type KCatalogItem = {
+  id: string;
+  name: string;
+  k: number;
+  category:
+    | "accessory"
+    | "valve"
+    | "entrance_exit"
+    | "tee"
+    | "transition"
+    | "other";
+  description?: string;
+  sourceNote: string;
+};
+
+export const K_CATALOG: KCatalogItem[] = [
+  // seus itens de K aqui
+]; 
+
+export function findKById(id: string): KCatalogItem | undefined {
+  return K_CATALOG.find((item) => item.id === id);
+}
