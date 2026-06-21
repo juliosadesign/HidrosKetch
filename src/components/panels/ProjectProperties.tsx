@@ -1,6 +1,8 @@
 import type {
   EditorScaleSettings,
+  ProjectEnergySettings,
   ProjectVisualState,
+  UpdateProjectEnergySettings,
   UpdateScaleSettings,
 } from "../../editor/editor.types";
 import type { StoredCalculationState } from "../../store/resultStore";
@@ -11,15 +13,31 @@ type ProjectPropertiesProps = {
   projectState: ProjectVisualState;
   calculationState: StoredCalculationState;
   scaleSettings: EditorScaleSettings;
+  energySettings: ProjectEnergySettings;
   onUpdateScaleSettings: UpdateScaleSettings;
+  onUpdateEnergySettings: UpdateProjectEnergySettings;
 };
+
+function readNumberInput(value: string): number {
+  if (value.trim() === "") {
+    return 0;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
 
 export function ProjectProperties({
   projectState,
   calculationState,
   scaleSettings,
+  energySettings,
   onUpdateScaleSettings,
+  onUpdateEnergySettings,
 }: ProjectPropertiesProps) {
+  const geometricHeadM =
+    energySettings.destinationElevationM - energySettings.originElevationM;
+
   return (
     <div className="space-y-4">
       <div>
@@ -31,6 +49,85 @@ export function ProjectProperties({
           Nenhum componente selecionado. Aqui aparecem os dados gerais, escala,
           grade, régua e resultados.
         </p>
+      </div>
+
+      <div className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-cyan-300">
+          Altura, desnível e pressão final
+        </h3>
+
+        <p className="mt-2 text-xs leading-5 text-cyan-100/80">
+          Estes campos servem como dados gerais do projeto. Se existir um
+          reservatório, tanque ou nó marcado como origem/destino com cota
+          própria, o cálculo usa a cota do componente. Caso contrário, usa os
+          valores abaixo.
+        </p>
+
+        <div className="mt-4 space-y-3">
+          <label className="block text-xs text-slate-400">
+            Altura da origem m
+            <input
+              type="number"
+              step="0.1"
+              value={energySettings.originElevationM}
+              onChange={(event) =>
+                onUpdateEnergySettings({
+                  originElevationM: readNumberInput(event.target.value),
+                })
+              }
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+            />
+          </label>
+
+          <label className="block text-xs text-slate-400">
+            Altura do destino m
+            <input
+              type="number"
+              step="0.1"
+              value={energySettings.destinationElevationM}
+              onChange={(event) =>
+                onUpdateEnergySettings({
+                  destinationElevationM: readNumberInput(event.target.value),
+                })
+              }
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+            />
+          </label>
+
+          <label className="block text-xs text-slate-400">
+            Pressão mínima desejada no ponto final kPa
+            <input
+              type="number"
+              min={0}
+              step="1"
+              value={energySettings.requiredOutletPressureKpa}
+              onChange={(event) =>
+                onUpdateEnergySettings({
+                  requiredOutletPressureKpa: Math.max(
+                    0,
+                    readNumberInput(event.target.value)
+                  ),
+                })
+              }
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+            />
+          </label>
+
+          <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs leading-5 text-slate-300">
+            <div className="flex justify-between gap-4">
+              <span className="text-slate-400">Desnível geométrico</span>
+              <strong className="text-white">{geometricHeadM.toFixed(2)} m</strong>
+            </div>
+
+            <p className="mt-2 text-slate-400">
+              {geometricHeadM > 0
+                ? "O destino está acima da origem. A bomba precisa vencer essa altura."
+                : geometricHeadM < 0
+                  ? "O destino está abaixo da origem. Esse desnível pode reduzir a carga exigida da bomba."
+                  : "Origem e destino estão na mesma cota geométrica."}
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">

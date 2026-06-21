@@ -24,13 +24,19 @@ export function WarningsPanel({
   return (
     <div className="rounded-2xl border border-yellow-500/40 bg-yellow-500/10 p-4">
       <h3 className="text-xs font-semibold uppercase tracking-wide text-yellow-300">
-        Alertas e hipóteses
+        Alertas, hipóteses e pontos de atenção
       </h3>
+
+      <p className="mt-2 text-xs leading-5 text-yellow-100/90">
+        Esta área explica o que precisa ser conferido. Alertas não significam
+        necessariamente que o projeto está errado, mas indicam dados que podem
+        mudar o resultado.
+      </p>
 
       {validationWarnings.length > 0 && (
         <div className="mt-3">
           <p className="text-xs font-semibold text-yellow-100">
-            Alertas de validação
+            Alertas de validação da rede
           </p>
 
           <ul className="mt-2 space-y-1 text-xs leading-5 text-yellow-100">
@@ -44,7 +50,7 @@ export function WarningsPanel({
       {resultWarnings.length > 0 && (
         <div className="mt-3">
           <p className="text-xs font-semibold text-yellow-100">
-            Alertas do cálculo
+            Alertas do cálculo hidráulico
           </p>
 
           <ul className="mt-2 space-y-1 text-xs leading-5 text-yellow-100">
@@ -58,7 +64,7 @@ export function WarningsPanel({
       {assumptions.length > 0 && (
         <div className="mt-3">
           <p className="text-xs font-semibold text-yellow-100">
-            Hipóteses usadas
+            Hipóteses simplificadoras usadas
           </p>
 
           <ul className="mt-2 space-y-1 text-xs leading-5 text-yellow-100">

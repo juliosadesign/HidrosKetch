@@ -36,6 +36,13 @@ export type LocalLossComponentInput = {
     // Pressão inicial convertida em carga, se existir.
     // Para reservatório aberto, pode ser 0.
     initialPressureHeadMca?: number;
+
+    // Pressão mínima desejada no ponto final, já convertida para mca.
+    // A Sprint 14A usa esse valor apenas no cálculo simplificado da HMT.
+    requiredPressureHeadMca?: number;
+
+    // Valor original em kPa, mantido para exibição no painel de resultados.
+    requiredOutletPressureKpa?: number;
   
     lossComponents: LocalLossComponentInput[];
   

@@ -43,6 +43,25 @@ export type UpdateSelectedNodeData = (
   options?: UpdateNodeDataOptions
 ) => void;
 
+
+export type ProjectEnergySettings = {
+  // Altura/cota da origem usada como fallback quando não houver
+  // reservatório, tanque ou nó de origem com cota definida.
+  originElevationM: number;
+
+  // Altura/cota do destino usada como fallback quando não houver
+  // reservatório, tanque ou nó de destino com cota definida.
+  destinationElevationM: number;
+
+  // Pressão mínima desejada no ponto final, em kPa.
+  // Nesta sprint ela entra apenas como carga necessária simplificada.
+  requiredOutletPressureKpa: number;
+};
+
+export type UpdateProjectEnergySettings = (
+  updates: Partial<ProjectEnergySettings>
+) => void;
+
 export type UpdateScaleSettings = (
   updates: Partial<EditorScaleSettings>
 ) => void;

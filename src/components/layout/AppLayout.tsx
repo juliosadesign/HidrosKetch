@@ -12,6 +12,7 @@ import type {
   AddComponentRequest,
   HydroFlowEdge,
   HydroFlowNode,
+  ProjectEnergySettings,
   ProjectVisualState,
   UpdateNodeDataOptions,
 } from "../../editor/editor.types";
@@ -30,6 +31,8 @@ export function AppLayout() {
   const requestCounterRef = useRef(0);
 
   const [addRequest, setAddRequest] = useState<AddComponentRequest | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(true);
 
   const [nodes, setNodes, onNodesChange] =
     useNodesState<HydroFlowNode>(initialNodes);
@@ -50,6 +53,12 @@ export function AppLayout() {
       rulerEnabled: true,
       snapEnabled: true,
     });
+
+    const [energySettings, setEnergySettings] = useState<ProjectEnergySettings>({
+      originElevationM: 0,
+      destinationElevationM: 0,
+      requiredOutletPressureKpa: 0,
+    });
     
     function updateScaleSettings(updates: Partial<typeof scaleSettings>) {
       setScaleSettings((current) => ({
@@ -57,6 +66,15 @@ export function AppLayout() {
         ...updates,
       }));
     
+      setProjectState("outdated");
+    }
+
+    function updateEnergySettings(updates: Partial<ProjectEnergySettings>) {
+      setEnergySettings((current) => ({
+        ...current,
+        ...updates,
+      }));
+
       setProjectState("outdated");
     }
     
@@ -113,6 +131,7 @@ export function AppLayout() {
     const calculationAttempt = buildCalculationResultFromEditor({
       nodes,
       edges,
+      energySettings,
     });
   
     if (calculationAttempt.status === "blocked") {
@@ -166,8 +185,22 @@ export function AppLayout() {
         validationErrorCount={validationErrorCount}
       />
 
-      <main className="grid min-h-0 flex-1 grid-cols-[280px_1fr_340px]">
-        <Sidebar onAddComponent={handleAddComponent} />
+      <main
+        className={`grid min-h-0 flex-1 transition-[grid-template-columns] duration-300 ease-in-out ${
+          isSidebarOpen
+            ? isPropertiesPanelOpen
+              ? "grid-cols-[280px_1fr_340px]"
+              : "grid-cols-[280px_1fr_52px]"
+            : isPropertiesPanelOpen
+              ? "grid-cols-[72px_1fr_340px]"
+              : "grid-cols-[72px_1fr_52px]"
+        }`}
+      >
+        <Sidebar
+          isCollapsed={!isSidebarOpen}
+          onToggle={() => setIsSidebarOpen((current) => !current)}
+          onAddComponent={handleAddComponent}
+        />
 
         <HydroSketchCanvas
   addRequest={addRequest}
@@ -191,7 +224,11 @@ export function AppLayout() {
   projectState={projectState}
   calculationState={calculationState}
   scaleSettings={scaleSettings}
+  energySettings={energySettings}
   onUpdateScaleSettings={updateScaleSettings}
+  onUpdateEnergySettings={updateEnergySettings}
+  isCollapsed={!isPropertiesPanelOpen}
+  onToggle={() => setIsPropertiesPanelOpen((current) => !current)}
   onUpdateSelectedNodeData={updateSelectedNodeData}
 />
       </main>

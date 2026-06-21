@@ -39,6 +39,14 @@ export type HydroCalculationResult = {
   residualHeadMca: number | null;
   estimatedPressureKpa: number | null;
 
+  // Sprint 14A — carga geométrica e altura manométrica simplificada.
+  originElevationM: number | null;
+  destinationElevationM: number | null;
+  geometricHeadM: number | null;
+  requiredOutletPressureKpa: number | null;
+  requiredPressureHeadMca: number | null;
+  totalDynamicHeadMca: number | null;
+
   componentResults: ComponentCalculationResult[];
 
   warnings: CalculationWarning[];

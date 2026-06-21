@@ -27,6 +27,7 @@ import type {
   import type {
     HydroFlowEdge,
     HydroFlowNode,
+    ProjectEnergySettings,
   } from "../../editor/editor.types";
   
   import { createDefaultProject } from "../../domain/defaults/projectDefaults";
@@ -41,6 +42,7 @@ import type {
   export type BuildCalculationResultInput = {
     nodes: HydroFlowNode[];
     edges: HydroFlowEdge[];
+    energySettings?: ProjectEnergySettings;
   };
   
   export type BuildCalculationResultOutput = {
@@ -57,7 +59,11 @@ import type {
     input: BuildCalculationResultInput
   ): BuildCalculationResultOutput {
 
-const project = buildTemporaryProjectFromEditor(input.nodes, input.edges);
+const project = buildTemporaryProjectFromEditor(
+  input.nodes,
+  input.edges,
+  input.energySettings
+);
 
 const projectValidation = validateProject(project);
 
@@ -111,7 +117,8 @@ const resultWithDate: HydroCalculationResult = {
   
   function buildTemporaryProjectFromEditor(
     nodes: HydroFlowNode[],
-    edges: HydroFlowEdge[]
+    edges: HydroFlowEdge[],
+    energySettings?: ProjectEnergySettings
   ): HydroSketchProject {
     const project = createDefaultProject();
   
@@ -134,6 +141,14 @@ const resultWithDate: HydroCalculationResult = {
         settings: {
           ...project.settings,
           branchingMode: firstBranch?.branchingMode ?? project.settings.branchingMode,
+          originElevationM:
+            energySettings?.originElevationM ?? project.settings.originElevationM,
+          destinationElevationM:
+            energySettings?.destinationElevationM ??
+            project.settings.destinationElevationM,
+          requiredOutletPressureKpa:
+            energySettings?.requiredOutletPressureKpa ??
+            project.settings.requiredOutletPressureKpa,
         },
         components,
         connections,
@@ -351,9 +366,20 @@ const resultWithDate: HydroCalculationResult = {
         headMca: component.data.headMca,
       }));
   
-    const originElevationM = findOriginElevationM(project.components);
-    const destinationElevationM = findDestinationElevationM(project.components);
+    const originElevationM = findOriginElevationM(
+      project.components,
+      project.settings.originElevationM
+    );
+    const destinationElevationM = findDestinationElevationM(
+      project.components,
+      project.settings.destinationElevationM
+    );
     const initialPressureHeadMca = findInitialPressureHeadMca(project.components);
+    const requiredOutletPressureKpa = Math.max(
+      0,
+      project.settings.requiredOutletPressureKpa
+    );
+    const requiredPressureHeadMca = requiredOutletPressureKpa / 9.81;
   
     return {
       flowLps,
@@ -361,6 +387,8 @@ const resultWithDate: HydroCalculationResult = {
       originElevationM,
       destinationElevationM,
       initialPressureHeadMca,
+      requiredOutletPressureKpa,
+      requiredPressureHeadMca,
       lossComponents,
       pumps,
     };
@@ -382,7 +410,10 @@ const resultWithDate: HydroCalculationResult = {
     return 50;
   }
   
-  function findOriginElevationM(components: HydroComponent[]): number {
+  function findOriginElevationM(
+    components: HydroComponent[],
+    fallbackElevationM: number
+  ): number {
     for (const component of components) {
       if (component.kind === "reservoir" && component.data.role === "source") {
         return component.data.elevationM ?? 0;
@@ -397,10 +428,13 @@ const resultWithDate: HydroCalculationResult = {
       }
     }
   
-    return 0;
+    return fallbackElevationM;
   }
   
-  function findDestinationElevationM(components: HydroComponent[]): number {
+  function findDestinationElevationM(
+    components: HydroComponent[],
+    fallbackElevationM: number
+  ): number {
     for (const component of components) {
       if (component.kind === "reservoir" && component.data.role === "destination") {
         return component.data.elevationM ?? 0;
@@ -415,8 +449,8 @@ const resultWithDate: HydroCalculationResult = {
       }
     }
   
-    // Se o destino for apenas uma saída de tubulação, a V1 assume cota 0.
-    return 0;
+    // Se o destino for apenas uma saída de tubulação, a V1 usa a cota geral do projeto.
+    return fallbackElevationM;
   }
   
   function findInitialPressureHeadMca(components: HydroComponent[]): number {

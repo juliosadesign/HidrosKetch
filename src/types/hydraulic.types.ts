@@ -61,6 +61,16 @@ export type ProjectHydraulicSettings = {
   // Pode começar nula até o usuário preencher.
   defaultFlowLps: number | null;
 
+  // Dados geométricos gerais usados como fallback quando o editor
+  // não tiver reservatório/tanque/nó de origem e destino com cotas próprias.
+  originElevationM: number;
+  destinationElevationM: number;
+
+  // Pressão mínima desejada no ponto final do sistema.
+  // Na Sprint 14A, ela é convertida para metros de coluna d’água
+  // e entra na altura manométrica total simplificada.
+  requiredOutletPressureKpa: number;
+
   // Bomba padrão da V1.
   defaultPumpHeadMca: number;
 

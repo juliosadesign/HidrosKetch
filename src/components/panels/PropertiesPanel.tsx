@@ -1,12 +1,15 @@
 import type {
     EditorScaleSettings,
     HydroFlowNode,
+    ProjectEnergySettings,
     ProjectVisualState,
+    UpdateProjectEnergySettings,
     UpdateScaleSettings,
     UpdateSelectedNodeData,
   } from "../../editor/editor.types";
   
   import type { StoredCalculationState } from "../../store/resultStore";
+  import { getComponentUsageGuide } from "../../domain/catalogs/componentHelp";
   
   import { ProjectProperties } from "./ProjectProperties";
   import { PipeProperties } from "./PipeProperties";
@@ -23,16 +26,68 @@ import type {
     projectState: ProjectVisualState;
     calculationState: StoredCalculationState;
     scaleSettings: EditorScaleSettings;
+    energySettings: ProjectEnergySettings;
+    isCollapsed: boolean;
+    onToggle: () => void;
     onUpdateScaleSettings: UpdateScaleSettings;
+    onUpdateEnergySettings: UpdateProjectEnergySettings;
     onUpdateSelectedNodeData: UpdateSelectedNodeData;
   };
+
+  function ComponentHelpCard({ node }: { node: HydroFlowNode }) {
+    const guide = getComponentUsageGuide(
+      String(node.data.catalogItemId ?? ""),
+      node.data.componentKind
+    );
+
+    return (
+      <section className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-cyan-300">
+          Como usar este componente?
+        </h3>
+
+        <p className="mt-3 text-sm font-semibold text-white">{guide.title}</p>
+
+        <p className="mt-2 text-xs leading-5 text-cyan-50/90">
+          {guide.purpose}
+        </p>
+
+        <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+          <p className="text-xs font-semibold text-slate-200">Quando usar</p>
+          <p className="mt-1 text-xs leading-5 text-slate-400">
+            {guide.whenToUse}
+          </p>
+        </div>
+
+        <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+          <p className="text-xs font-semibold text-slate-200">
+            Campos importantes
+          </p>
+          <ul className="mt-2 space-y-1 text-xs leading-5 text-slate-400">
+            {guide.importantFields.map((field) => (
+              <li key={field}>• {field}</li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="mt-3 rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-3 text-xs leading-5 text-yellow-50/90">
+          <strong className="text-yellow-200">Observação técnica:</strong>{" "}
+          {guide.technicalNote}
+        </p>
+      </section>
+    );
+  }
   
   export function PropertiesPanel({
     selectedNode,
     projectState,
     calculationState,
     scaleSettings,
+    energySettings,
+    isCollapsed,
+    onToggle,
     onUpdateScaleSettings,
+    onUpdateEnergySettings,
     onUpdateSelectedNodeData,
   }: PropertiesPanelProps) {
     function renderContent() {
@@ -42,7 +97,9 @@ import type {
             projectState={projectState}
             calculationState={calculationState}
             scaleSettings={scaleSettings}
+            energySettings={energySettings}
             onUpdateScaleSettings={onUpdateScaleSettings}
+            onUpdateEnergySettings={onUpdateEnergySettings}
           />
         );
       }
@@ -118,15 +175,61 @@ import type {
               projectState={projectState}
               calculationState={calculationState}
               scaleSettings={scaleSettings}
+              energySettings={energySettings}
               onUpdateScaleSettings={onUpdateScaleSettings}
+              onUpdateEnergySettings={onUpdateEnergySettings}
             />
           );
       }
     }
+
+    if (isCollapsed) {
+      return (
+        <aside className="flex min-h-0 flex-col items-center border-l border-slate-800 bg-slate-900/80 px-2 py-4">
+          <button
+            type="button"
+            onClick={onToggle}
+            title="Expandir painel técnico"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-500/40 bg-cyan-500/10 text-cyan-200 transition hover:bg-cyan-500/20"
+          >
+            ⟩
+          </button>
+
+          <div className="mt-4 flex flex-1 items-center justify-center">
+            <span className="rotate-90 whitespace-nowrap text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+              Propriedades
+            </span>
+          </div>
+        </aside>
+      );
+    }
   
     return (
-      <aside className="min-h-0 overflow-y-auto border-l border-slate-800 bg-slate-900/70 p-4">
-        {renderContent()}
+      <aside className="min-h-0 overflow-y-auto border-l border-slate-800 bg-slate-900/80 p-4 shadow-2xl shadow-slate-950/40">
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2">
+          <div>
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-cyan-300">
+              Painel técnico
+            </h2>
+            <p className="text-xs text-slate-500">
+              Propriedades, escala, resultados e validações.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onToggle}
+            title="Recolher painel técnico"
+            className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-slate-300 transition hover:border-cyan-500/60 hover:bg-slate-800 hover:text-white"
+          >
+            ⟩
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {renderContent()}
+          {selectedNode && <ComponentHelpCard node={selectedNode} />}
+        </div>
       </aside>
     );
   }

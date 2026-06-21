@@ -16,7 +16,8 @@ export function ComponentResultsTable({ rows }: ComponentResultsTableProps) {
   if (rows.length === 0) {
     return (
       <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-xs text-slate-400">
-        Nenhum componente com perda localizada foi calculado.
+        Nenhum componente com perda localizada foi calculado. Adicione acessórios
+        ou válvulas com coeficiente K para visualizar perdas individuais.
       </div>
     );
   }
@@ -26,6 +27,12 @@ export function ComponentResultsTable({ rows }: ComponentResultsTableProps) {
       <h3 className="text-xs font-semibold uppercase tracking-wide text-cyan-300">
         Tabela de perdas por componente
       </h3>
+
+      <p className="mt-3 text-xs leading-5 text-slate-400">
+        Esta tabela mostra quanto cada acessório ou válvula contribui para a
+        perda de carga. Componentes com K maior ou velocidade maior tendem a
+        gerar perdas mais altas.
+      </p>
 
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[520px] text-left text-xs">

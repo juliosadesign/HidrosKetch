@@ -5,5 +5,6 @@ export * from "./energy";
 export * from "./localLoss";
 export * from "./pump";
 export * from "./pressure";
+export * from "./head";
 export * from "./hydraulicEngine.types";
 export * from "./hydraulicEngine";

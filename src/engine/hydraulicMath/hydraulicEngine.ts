@@ -11,6 +11,7 @@ import { calculateKineticHeadM } from "./energy";
 import { calculateLocalLossMca, sumLocalLossesMca } from "./localLoss";
 import { sumPumpHeadsMca } from "./pump";
 import { calculateResidualHeadMca, estimatePressureKpaFromHeadMca } from "./pressure";
+import { calculateGeometricHeadM, calculateTotalDynamicHeadMca } from "./head";
 
 // Calcula a perda localizada de um único componente.
 // Essa função é pura: recebe dados e devolve resultado.
@@ -73,14 +74,24 @@ export function runHydraulicPathCalculation(
 
     const totalPumpHeadMca = sumPumpHeadsMca(input.pumps);
 
-    const elevationDifferenceM =
-      input.destinationElevationM - input.originElevationM;
+    const geometricHeadM = calculateGeometricHeadM(
+      input.originElevationM,
+      input.destinationElevationM
+    );
+
+    const requiredPressureHeadMca = input.requiredPressureHeadMca ?? 0;
+
+    const totalDynamicHeadMca = calculateTotalDynamicHeadMca({
+      geometricHeadM,
+      totalLocalLossMca,
+      requiredPressureHeadMca,
+    });
 
     const residualHeadMca = calculateResidualHeadMca({
       initialPressureHeadMca: input.initialPressureHeadMca ?? 0,
       totalPumpHeadMca,
       totalLocalLossMca,
-      elevationDifferenceM,
+      elevationDifferenceM: geometricHeadM,
     });
 
     const estimatedPressureKpa =
@@ -97,6 +108,12 @@ export function runHydraulicPathCalculation(
       totalPumpHeadMca,
       residualHeadMca,
       estimatedPressureKpa,
+      originElevationM: input.originElevationM,
+      destinationElevationM: input.destinationElevationM,
+      geometricHeadM,
+      requiredOutletPressureKpa: input.requiredOutletPressureKpa ?? 0,
+      requiredPressureHeadMca,
+      totalDynamicHeadMca,
 
       componentResults,
 
@@ -111,6 +128,11 @@ export function runHydraulicPathCalculation(
           message:
             "A V1 calcula perdas localizadas. Perdas contínuas completas ficam para versão futura.",
         },
+        {
+          id: "sprint14a_total_dynamic_head_simplified",
+          message:
+            "A altura manométrica total é uma estimativa simplificada: desnível + perdas localizadas + pressão mínima desejada.",
+        },
       ],
 
       errors: [],
@@ -121,6 +143,8 @@ export function runHydraulicPathCalculation(
         "Regime permanente.",
         "Bomba modelada por carga fixa H_b.",
         "Pressão estimada apenas para caminho simples ou caminho controlado.",
+        "Desnível geométrico calculado por Δz = z_destino - z_origem.",
+        "Altura manométrica total estimada por HMT = Δz + perdas + pressão mínima desejada.",
         "Perdas localizadas calculadas por hloc = K · V²/(2g).",
       ],
     };
@@ -138,6 +162,12 @@ export function runHydraulicPathCalculation(
       totalPumpHeadMca: null,
       residualHeadMca: null,
       estimatedPressureKpa: null,
+      originElevationM: null,
+      destinationElevationM: null,
+      geometricHeadM: null,
+      requiredOutletPressureKpa: null,
+      requiredPressureHeadMca: null,
+      totalDynamicHeadMca: null,
 
       componentResults: [],
 
