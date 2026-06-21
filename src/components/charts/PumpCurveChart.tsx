@@ -1,4 +1,4 @@
-﻿import { sortPumpCurvePoints } from "../../engine/pumpCurve";
+import { sortPumpCurvePoints } from "../../engine/pumpCurve";
 import type { PumpModel } from "../../types/pump.types";
 
 type PumpCurveChartProps = {
@@ -15,7 +15,7 @@ type ChartPoint = {
 
 function formatNumber(value: number | null | undefined, decimals = 2): string {
   if (value === null || value === undefined || !Number.isFinite(value)) {
-    return "nÃ£o calculado";
+    return "não calculado";
   }
 
   return value.toFixed(decimals);
@@ -36,7 +36,7 @@ export function PumpCurveChart({
   if (curvePoints.length === 0) {
     return (
       <div className="rounded-lg border border-slate-700 bg-slate-950/70 p-3 text-xs leading-5 text-slate-400">
-        Esta bomba ainda nÃ£o possui curva cadastrada.
+        Esta bomba ainda não possui curva cadastrada.
       </div>
     );
   }
@@ -104,7 +104,7 @@ export function PumpCurveChart({
             Curva simplificada da bomba
           </p>
           <p className="mt-1 text-[11px] leading-4 text-slate-500">
-            O ponto ideal ocorre quando a bomba consegue fornecer a altura necessÃ¡ria na vazÃ£o desejada.
+            O ponto ideal ocorre quando a bomba consegue fornecer a altura necessária na vazão desejada.
           </p>
         </div>
       </div>
@@ -138,7 +138,7 @@ export function PumpCurveChart({
           textAnchor="middle"
           className="fill-slate-500 text-[10px]"
         >
-          VazÃ£o (mÂ³/h)
+          Vazão (m³/h)
         </text>
         <text
           x="12"
@@ -235,10 +235,10 @@ export function PumpCurveChart({
 
       <div className="mt-3 grid grid-cols-1 gap-2 text-[11px] leading-4 text-slate-400 sm:grid-cols-2">
         <div>
-          <span className="font-semibold text-cyan-100">Curva:</span> pontos cadastrados do catÃ¡logo.
+          <span className="font-semibold text-cyan-100">Curva:</span> pontos cadastrados do catálogo.
         </div>
         <div>
-          <span className="font-semibold text-yellow-100">Ponto exigido:</span> vazÃ£o e HMT do projeto.
+          <span className="font-semibold text-yellow-100">Ponto exigido:</span> vazão e HMT do projeto.
         </div>
         <div>
           <span className="font-semibold text-emerald-100">Altura entregue:</span> {formatNumber(deliveredHeadMca)} mca.
