@@ -37,6 +37,12 @@ export const PUMP_CATALOG: PumpModel[] = [
       dataQuality: "manufacturer_catalog",
       checkedAt: "2026-06-21",
     },
+    curvePoints: [
+      { flowM3h: 0, headMca: 22 },
+      { flowM3h: 0.6, headMca: 17 },
+      { flowM3h: 2.5, headMca: 10 },
+      { flowM3h: 4.1, headMca: 2 },
+    ],
   },
   {
     id: "schneider_bcr_2010_100cv",
@@ -63,6 +69,12 @@ export const PUMP_CATALOG: PumpModel[] = [
       dataQuality: "manufacturer_catalog",
       checkedAt: "2026-06-21",
     },
+    curvePoints: [
+      { flowM3h: 0, headMca: 29 },
+      { flowM3h: 0.9, headMca: 21 },
+      { flowM3h: 3.7, headMca: 16 },
+      { flowM3h: 5.4, headMca: 8 },
+    ],
   },
   {
     id: "dancor_cam_w6c_075cv",
@@ -89,6 +101,12 @@ export const PUMP_CATALOG: PumpModel[] = [
       dataQuality: "manufacturer_catalog",
       checkedAt: "2026-06-21",
     },
+    curvePoints: [
+      { flowM3h: 0, headMca: 32 },
+      { flowM3h: 0.8, headMca: 30 },
+      { flowM3h: 7.7, headMca: 16 },
+      { flowM3h: 9.3, headMca: 8 },
+    ],
   },
   {
     id: "dancor_cam_w6c_200cv",
@@ -115,6 +133,12 @@ export const PUMP_CATALOG: PumpModel[] = [
       dataQuality: "manufacturer_catalog",
       checkedAt: "2026-06-21",
     },
+    curvePoints: [
+      { flowM3h: 0, headMca: 48 },
+      { flowM3h: 0.6, headMca: 44 },
+      { flowM3h: 6.3, headMca: 20 },
+      { flowM3h: 8.2, headMca: 8 },
+    ],
   },
   {
     id: "ebara_thebe_bst_range",
@@ -193,6 +217,11 @@ export const PUMP_CATALOG: PumpModel[] = [
       dataQuality: "didactic_example",
       checkedAt: null,
     },
+    curvePoints: [
+      { flowM3h: 0, headMca: 18 },
+      { flowM3h: 1.2, headMca: 12 },
+      { flowM3h: 2.4, headMca: 4 },
+    ],
   },
   {
     id: "hs_example_residential_050cv",
@@ -219,6 +248,11 @@ export const PUMP_CATALOG: PumpModel[] = [
       dataQuality: "didactic_example",
       checkedAt: null,
     },
+    curvePoints: [
+      { flowM3h: 0, headMca: 26 },
+      { flowM3h: 2.4, headMca: 18 },
+      { flowM3h: 4.2, headMca: 6 },
+    ],
   },
   {
     id: "hs_example_booster_075cv",
@@ -245,6 +279,11 @@ export const PUMP_CATALOG: PumpModel[] = [
       dataQuality: "didactic_example",
       checkedAt: null,
     },
+    curvePoints: [
+      { flowM3h: 0, headMca: 34 },
+      { flowM3h: 3.2, headMca: 24 },
+      { flowM3h: 5.0, headMca: 10 },
+    ],
   },
 ];
 

@@ -12,6 +12,22 @@ export type PumpDataQuality =
   | "manufacturer_catalog"
   | "pending_verification";
 
+export type PumpCurvePoint = {
+  flowM3h: number;
+  headMca: number;
+};
+
+export type PumpCurveEvaluation = {
+  hasCurve: boolean;
+  isWithinCurveRange: boolean;
+  deliveredHeadMca: number | null;
+  requiredHeadMca: number | null;
+  requiredFlowM3h: number | null;
+  headMarginMca: number | null;
+  headMarginPercent: number | null;
+  message: string;
+};
+
 export type PumpDataSource = {
   sourceName: string;
   sourceUrl: string | null;
@@ -42,6 +58,14 @@ export type PumpModel = {
   recommendedUse: string;
   technicalNote: string;
   source: PumpDataSource;
+
+  /**
+   * Curva simplificada da bomba.
+   * flowM3h = vazão em m³/h.
+   * headMca = altura manométrica entregue pela bomba em mca.
+   * Usada apenas para pré-seleção didática e interpolação linear.
+   */
+  curvePoints?: PumpCurvePoint[];
 };
 
 export type PumpCatalogFilter = {
@@ -82,4 +106,5 @@ export type PumpRecommendation = {
   flowMarginPercent: number | null;
   headMarginPercent: number | null;
   powerComparison: "abaixo_da_estimativa" | "proxima" | "acima_da_estimativa" | "nao_comparada";
+  curveEvaluation: PumpCurveEvaluation;
 };

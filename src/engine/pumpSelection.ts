@@ -1,4 +1,5 @@
 import { listPumpCatalog } from "../domain/catalogs/pumpCatalog";
+import { evaluatePumpCurveAtOperatingPoint } from "./pumpCurve";
 import type {
   PumpCatalogFilter,
   PumpFilterMatch,
@@ -126,8 +127,14 @@ export function evaluatePumpRecommendation(
   const estimatedElectricPowerKw = normalizePositiveNumber(
     input.estimatedElectricPowerKw
   );
+  const curveEvaluation = evaluatePumpCurveAtOperatingPoint(
+    pump,
+    requiredFlowM3h,
+    requiredHeadMca
+  );
   const pumpFlowCapacityM3h = resolveFlowCapacityM3h(pump);
-  const pumpHeadCapacityMca = resolveHeadCapacityMca(pump);
+  const pumpHeadCapacityMca =
+    curveEvaluation.deliveredHeadMca ?? resolveHeadCapacityMca(pump);
 
   if (requiredFlowM3h === null) {
     missingData.push("vazão exigida do projeto");
@@ -142,7 +149,7 @@ export function evaluatePumpRecommendation(
   }
 
   if (pumpHeadCapacityMca === null) {
-    missingData.push("altura máxima ou nominal da bomba");
+    missingData.push("altura máxima, nominal ou estimada pela curva da bomba");
   }
 
   const flowMarginPercent = calculateMarginPercent(
@@ -158,6 +165,14 @@ export function evaluatePumpRecommendation(
     estimatedElectricPowerKw
   );
 
+  if (curveEvaluation.hasCurve) {
+    reasons.push(curveEvaluation.message);
+  } else {
+    reasons.push(
+      "Sem curva simplificada cadastrada; usando capacidade nominal/máxima como comparação preliminar."
+    );
+  }
+
   if (missingData.length > 0) {
     reasons.push(
       "Não há dados suficientes para classificar esta bomba com segurança."
@@ -172,6 +187,7 @@ export function evaluatePumpRecommendation(
       flowMarginPercent,
       headMarginPercent,
       powerComparison,
+      curveEvaluation,
     };
   }
 
@@ -198,6 +214,7 @@ export function evaluatePumpRecommendation(
       flowMarginPercent,
       headMarginPercent,
       powerComparison,
+      curveEvaluation,
     };
   }
 
@@ -211,6 +228,12 @@ export function evaluatePumpRecommendation(
     reasons.push("A bomba atende com margem confortável para a pré-seleção.");
   } else {
     reasons.push("A bomba atende à vazão e à altura manométrica exigidas.");
+  }
+
+  if (curveEvaluation.hasCurve && curveEvaluation.headMarginMca !== null) {
+    reasons.push(
+      `Margem pela curva simplificada: ${curveEvaluation.headMarginMca.toFixed(2)} mca.`
+    );
   }
 
   if (powerComparison === "abaixo_da_estimativa") {
@@ -234,6 +257,7 @@ export function evaluatePumpRecommendation(
     flowMarginPercent,
     headMarginPercent,
     powerComparison,
+    curveEvaluation,
   };
 }
 
