@@ -266,6 +266,51 @@ import {
       setProjectState,
     ]);
 
+    const handleCloneSelectedNode = useCallback(() => {
+      if (!selectedNodeId) return;
+
+      const nodeToClone = nodes.find((node) => node.id === selectedNodeId);
+
+      if (!nodeToClone) return;
+
+      const cloneId = `${nodeToClone.data.componentKind}_${nodeToClone.data.catalogItemId}_clone_${Date.now()}`;
+      const clonedNode: HydroFlowNode = {
+        ...nodeToClone,
+        id: cloneId,
+        selected: true,
+        position: {
+          x: nodeToClone.position.x + 56,
+          y: nodeToClone.position.y + 56,
+        },
+        data: {
+          ...nodeToClone.data,
+          label: `${nodeToClone.data.label} (cópia)`,
+          defaultData: {
+            ...nodeToClone.data.defaultData,
+          },
+        },
+      };
+
+      setNodes((currentNodes) => [
+        ...currentNodes.map((node) => ({
+          ...node,
+          selected: false,
+        })),
+        clonedNode,
+      ]);
+
+      setSelectedNodeId(cloneId);
+      setSelectedEdgeId(null);
+      setProjectState("outdated");
+    }, [
+      nodes,
+      selectedNodeId,
+      setNodes,
+      setSelectedNodeId,
+      setSelectedEdgeId,
+      setProjectState,
+    ]);
+
     const handleDeleteSelectedEdge = useCallback(() => {
       if (!selectedEdgeId) return;
 
@@ -414,6 +459,20 @@ import {
             className="rounded-xl border border-red-500/40 px-3 py-2 text-xs font-semibold text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Deletar componente
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCloneSelectedNode}
+            disabled={!selectedNodeId}
+            className="rounded-xl border border-emerald-500/40 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+            title={
+              selectedNodeId
+                ? "Duplica o componente selecionado sem copiar conexões."
+                : "Selecione um componente para clonar."
+            }
+          >
+            Clonar componente
           </button>
 
           <button
