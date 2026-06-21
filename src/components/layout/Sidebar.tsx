@@ -1,3 +1,5 @@
+import type { MouseEvent as ReactMouseEvent } from "react";
+
 import { COMPONENT_CATALOG } from "../../domain/catalogs/componentCatalog";
 import type { ComponentCatalogItem } from "../../domain/catalogs/componentCatalog";
 import { getComponentUsageGuide } from "../../domain/catalogs/componentHelp";
@@ -6,6 +8,8 @@ type SidebarProps = {
   isCollapsed: boolean;
   onToggle: () => void;
   onAddComponent: (component: ComponentCatalogItem) => void;
+  onResizeStart: (event: ReactMouseEvent<HTMLDivElement>) => void;
+  widthPx: number;
 };
 
 function groupCatalogByCategory() {
@@ -24,10 +28,13 @@ function groupCatalogByCategory() {
 
 // Biblioteca lateral de componentes.
 // Sprint 13A: barra retrátil para liberar espaço para a prancheta.
+// Sprint 18: largura ajustável pelo mouse com limite mínimo e máximo.
 export function Sidebar({
   isCollapsed,
   onToggle,
   onAddComponent,
+  onResizeStart,
+  widthPx,
 }: SidebarProps) {
   const groupedCatalog = groupCatalogByCategory();
 
@@ -53,7 +60,15 @@ export function Sidebar({
   }
 
   return (
-    <aside className="min-h-0 overflow-y-auto border-r border-slate-800 bg-slate-900/80 p-4 shadow-2xl shadow-slate-950/40">
+    <aside className="relative min-h-0 overflow-y-auto border-r border-slate-800 bg-slate-900/80 p-4 shadow-2xl shadow-slate-950/40">
+      <div
+        role="separator"
+        aria-label="Redimensionar biblioteca de componentes"
+        title="Arraste para aumentar ou reduzir a biblioteca de componentes"
+        onMouseDown={onResizeStart}
+        className="absolute right-0 top-0 z-20 h-full w-2 cursor-col-resize bg-transparent transition hover:bg-cyan-400/25"
+      />
+
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold text-white">
@@ -62,6 +77,11 @@ export function Sidebar({
 
           <p className="mt-1 text-xs leading-5 text-slate-400">
             Clique em um componente para adicioná-lo à prancheta.
+          </p>
+
+          <p className="mt-2 text-[11px] leading-4 text-slate-500">
+            Largura atual: {Math.round(widthPx)} px. Arraste a borda direita
+            para ajustar sem ocupar a tela inteira.
           </p>
         </div>
 

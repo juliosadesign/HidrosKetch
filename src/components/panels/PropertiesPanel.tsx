@@ -1,3 +1,5 @@
+import type { MouseEvent as ReactMouseEvent } from "react";
+
 import type {
     EditorScaleSettings,
     HydroFlowNode,
@@ -29,6 +31,8 @@ import type {
     energySettings: ProjectEnergySettings;
     isCollapsed: boolean;
     onToggle: () => void;
+    onResizeStart: (event: ReactMouseEvent<HTMLDivElement>) => void;
+    widthPx: number;
     onUpdateScaleSettings: UpdateScaleSettings;
     onUpdateEnergySettings: UpdateProjectEnergySettings;
     onUpdateSelectedNodeData: UpdateSelectedNodeData;
@@ -86,6 +90,8 @@ import type {
     energySettings,
     isCollapsed,
     onToggle,
+    onResizeStart,
+    widthPx,
     onUpdateScaleSettings,
     onUpdateEnergySettings,
     onUpdateSelectedNodeData,
@@ -205,7 +211,15 @@ import type {
     }
   
     return (
-      <aside className="min-h-0 overflow-y-auto border-l border-slate-800 bg-slate-900/80 p-4 shadow-2xl shadow-slate-950/40">
+      <aside className="relative min-h-0 overflow-y-auto border-l border-slate-800 bg-slate-900/80 p-4 shadow-2xl shadow-slate-950/40">
+        <div
+          role="separator"
+          aria-label="Redimensionar painel técnico"
+          title="Arraste para aumentar ou reduzir o painel técnico"
+          onMouseDown={onResizeStart}
+          className="absolute left-0 top-0 z-20 h-full w-2 cursor-col-resize bg-transparent transition hover:bg-cyan-400/25"
+        />
+
         <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2">
           <div>
             <h2 className="text-xs font-semibold uppercase tracking-wide text-cyan-300">
@@ -213,6 +227,10 @@ import type {
             </h2>
             <p className="text-xs text-slate-500">
               Propriedades, escala, resultados e validações.
+            </p>
+            <p className="mt-1 text-[11px] text-slate-600">
+              Largura atual: {Math.round(widthPx)} px. Arraste a borda esquerda
+              para ajustar.
             </p>
           </div>
 

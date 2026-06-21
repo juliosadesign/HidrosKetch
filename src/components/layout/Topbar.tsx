@@ -8,6 +8,18 @@ type TopbarProps = {
   validationErrorCount: number;
 };
 
+function getStatusLabel(projectState: ProjectVisualState) {
+  if (projectState === "calculated") return "Calculado";
+  if (projectState === "outdated") return "Desatualizado";
+  return "Rascunho";
+}
+
+function getStatusClass(projectState: ProjectVisualState) {
+  if (projectState === "calculated") return "text-emerald-300";
+  if (projectState === "outdated") return "text-yellow-300";
+  return "text-slate-300";
+}
+
 export function Topbar({
   projectState,
   onConfirmCalculate,
@@ -15,40 +27,25 @@ export function Topbar({
   validationErrorCount,
 }: TopbarProps) {
   return (
-    <header className="flex h-14 items-center justify-between border-b border-slate-800 bg-slate-900 px-4">
-      <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-300">
+    <header className="flex h-16 items-center justify-between gap-4 border-b border-slate-800 bg-slate-900 px-4">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-500/15 text-sm font-bold text-cyan-300">
           HS
         </div>
 
-        <div>
-          <h1 className="text-sm font-semibold tracking-wide text-white">
+        <div className="min-w-0">
+          <h1 className="truncate text-sm font-semibold tracking-wide text-white">
             HidroSketch
           </h1>
-          <p className="text-xs text-slate-400">
-            Editor hidráulico CAD-lite — Sprint 8
+          <p className="truncate text-xs text-slate-400">
+            Pré-dimensionamento visual de redes hidráulicas, bombas e energia
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2">
         <span className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300">
-          Status:{" "}
-          <strong
-            className={
-              projectState === "calculated"
-                ? "text-emerald-300"
-                : projectState === "outdated"
-                  ? "text-yellow-300"
-                  : "text-slate-300"
-            }
-          >
-            {projectState === "calculated"
-              ? "Calculado"
-              : projectState === "outdated"
-                ? "Desatualizado"
-                : "Rascunho"}
-          </strong>
+          Status: <strong className={getStatusClass(projectState)}>{getStatusLabel(projectState)}</strong>
         </span>
 
         {validationErrorCount > 0 && (
@@ -66,12 +63,13 @@ export function Topbar({
           Montar rede simples
         </button>
 
-        <button className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">
-          Novo
-        </button>
-
-        <button className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">
-          Salvar
+        <button
+          type="button"
+          disabled
+          className="hidden rounded-lg border border-slate-800 px-3 py-1.5 text-xs text-slate-600 lg:inline-flex"
+          title="Funcionalidade reservada para versão futura."
+        >
+          Salvar em breve
         </button>
 
         <ConfirmCalculateButton

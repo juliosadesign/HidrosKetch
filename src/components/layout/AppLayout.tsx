@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import { useEdgesState, useNodesState } from "@xyflow/react";
 
 import { Topbar } from "./Topbar";
@@ -28,12 +29,30 @@ import { createSimpleHydraulicNetworkTemplate } from "../../editor/templates/sim
 const initialNodes: HydroFlowNode[] = [];
 const initialEdges: HydroFlowEdge[] = [];
 
+const SIDEBAR_COLLAPSED_WIDTH = 72;
+const SIDEBAR_DEFAULT_WIDTH = 280;
+const SIDEBAR_MIN_WIDTH = 220;
+const SIDEBAR_MAX_WIDTH = 420;
+
+const PROPERTIES_COLLAPSED_WIDTH = 52;
+const PROPERTIES_DEFAULT_WIDTH = 340;
+const PROPERTIES_MIN_WIDTH = 300;
+const PROPERTIES_MAX_WIDTH = 520;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
 export function AppLayout() {
   const requestCounterRef = useRef(0);
 
   const [addRequest, setAddRequest] = useState<AddComponentRequest | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(true);
+  const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_WIDTH);
+  const [propertiesPanelWidth, setPropertiesPanelWidth] = useState(
+    PROPERTIES_DEFAULT_WIDTH
+  );
 
   const [nodes, setNodes, onNodesChange] =
     useNodesState<HydroFlowNode>(initialNodes);
@@ -47,41 +66,41 @@ export function AppLayout() {
   const [projectState, setProjectState] =
     useState<ProjectVisualState>("draft");
 
-    const [scaleSettings, setScaleSettings] = useState({
-      pixelsPerMeter: 40,
-      gridSpacingPx: 20,
-      gridEnabled: true,
-      rulerEnabled: true,
-      snapEnabled: true,
-    });
+  const [scaleSettings, setScaleSettings] = useState({
+    pixelsPerMeter: 40,
+    gridSpacingPx: 20,
+    gridEnabled: true,
+    rulerEnabled: true,
+    snapEnabled: true,
+  });
 
-    const [energySettings, setEnergySettings] = useState<ProjectEnergySettings>({
-      originElevationM: 0,
-      destinationElevationM: 0,
-      requiredOutletPressureKpa: 0,
-      operationHoursPerDay: 2,
-      operationDaysPerMonth: 30,
-      energyTariffBRLKwh: 0.9,
-    });
-    
-    function updateScaleSettings(updates: Partial<typeof scaleSettings>) {
-      setScaleSettings((current) => ({
-        ...current,
-        ...updates,
-      }));
-    
-      setProjectState("outdated");
-    }
+  const [energySettings, setEnergySettings] = useState<ProjectEnergySettings>({
+    originElevationM: 0,
+    destinationElevationM: 0,
+    requiredOutletPressureKpa: 0,
+    operationHoursPerDay: 2,
+    operationDaysPerMonth: 30,
+    energyTariffBRLKwh: 0.9,
+  });
 
-    function updateEnergySettings(updates: Partial<ProjectEnergySettings>) {
-      setEnergySettings((current) => ({
-        ...current,
-        ...updates,
-      }));
+  function updateScaleSettings(updates: Partial<typeof scaleSettings>) {
+    setScaleSettings((current) => ({
+      ...current,
+      ...updates,
+    }));
 
-      setProjectState("outdated");
-    }
-    
+    setProjectState("outdated");
+  }
+
+  function updateEnergySettings(updates: Partial<ProjectEnergySettings>) {
+    setEnergySettings((current) => ({
+      ...current,
+      ...updates,
+    }));
+
+    setProjectState("outdated");
+  }
+
   const [calculationState, setCalculationState] =
     useState<StoredCalculationState>(EMPTY_RESULT_STORE);
 
@@ -92,6 +111,63 @@ export function AppLayout() {
 
   const validationErrorCount =
     calculationState.lastValidation?.errors.length ?? 0;
+
+  const leftColumnWidth = isSidebarOpen
+    ? sidebarWidth
+    : SIDEBAR_COLLAPSED_WIDTH;
+
+  const rightColumnWidth = isPropertiesPanelOpen
+    ? propertiesPanelWidth
+    : PROPERTIES_COLLAPSED_WIDTH;
+
+  function handleStartSidebarResize(
+    event: ReactMouseEvent<HTMLDivElement>
+  ) {
+    startPanelResize("left", event, sidebarWidth);
+  }
+
+  function handleStartPropertiesResize(
+    event: ReactMouseEvent<HTMLDivElement>
+  ) {
+    startPanelResize("right", event, propertiesPanelWidth);
+  }
+
+  function startPanelResize(
+    side: "left" | "right",
+    event: ReactMouseEvent<HTMLDivElement>,
+    startWidth: number
+  ) {
+    event.preventDefault();
+
+    const startX = event.clientX;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    function handleMouseMove(moveEvent: MouseEvent) {
+      const delta = moveEvent.clientX - startX;
+
+      if (side === "left") {
+        setSidebarWidth(
+          clamp(startWidth + delta, SIDEBAR_MIN_WIDTH, SIDEBAR_MAX_WIDTH)
+        );
+        return;
+      }
+
+      setPropertiesPanelWidth(
+        clamp(startWidth - delta, PROPERTIES_MIN_WIDTH, PROPERTIES_MAX_WIDTH)
+      );
+    }
+
+    function handleMouseUp() {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    }
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  }
 
   function handleAddComponent(component: ComponentCatalogItem) {
     requestCounterRef.current += 1;
@@ -158,47 +234,38 @@ export function AppLayout() {
       edges,
       energySettings,
     });
-  
+
     if (calculationAttempt.status === "blocked") {
       setCalculationState((previousState) => ({
         status: "blocked",
-  
-        // Sprint 9:
-        // preserva o último resultado válido mesmo quando a nova tentativa falha.
         lastResult: previousState.lastResult,
-  
         lastValidation: calculationAttempt.validation,
-  
-        // mantém a data do último cálculo válido.
         lastCalculatedAt: previousState.lastCalculatedAt,
       }));
-  
+
       setProjectState("outdated");
       return;
     }
-  
+
     if (calculationAttempt.status === "failed") {
       setCalculationState((previousState) => ({
         status: "failed",
-  
-        // Também preservamos o último resultado válido em caso de falha técnica.
         lastResult: previousState.lastResult,
-  
         lastValidation: calculationAttempt.validation,
         lastCalculatedAt: previousState.lastCalculatedAt,
       }));
-  
+
       setProjectState("outdated");
       return;
     }
-  
+
     setCalculationState({
       status: "success",
       lastResult: calculationAttempt.result,
       lastValidation: calculationAttempt.validation,
       lastCalculatedAt: calculationAttempt.result?.calculatedAt ?? null,
     });
-  
+
     setProjectState("calculated");
   }
 
@@ -212,54 +279,54 @@ export function AppLayout() {
       />
 
       <main
-        className={`grid min-h-0 flex-1 transition-[grid-template-columns] duration-300 ease-in-out ${
-          isSidebarOpen
-            ? isPropertiesPanelOpen
-              ? "grid-cols-[280px_1fr_340px]"
-              : "grid-cols-[280px_1fr_52px]"
-            : isPropertiesPanelOpen
-              ? "grid-cols-[72px_1fr_340px]"
-              : "grid-cols-[72px_1fr_52px]"
-        }`}
+        className="grid min-h-0 flex-1 transition-[grid-template-columns] duration-200 ease-in-out"
+        style={{
+          gridTemplateColumns: `${leftColumnWidth}px minmax(0,1fr) ${rightColumnWidth}px`,
+        }}
       >
         <Sidebar
           isCollapsed={!isSidebarOpen}
           onToggle={() => setIsSidebarOpen((current) => !current)}
           onAddComponent={handleAddComponent}
+          onResizeStart={handleStartSidebarResize}
+          widthPx={sidebarWidth}
         />
 
         <HydroSketchCanvas
-  addRequest={addRequest}
-  nodes={nodes}
-  edges={edges}
-  setNodes={setNodes}
-  setEdges={setEdges}
-  onNodesChange={onNodesChange}
-  onEdgesChange={onEdgesChange}
-  selectedNodeId={selectedNodeId}
-  selectedEdgeId={selectedEdgeId}
-  setSelectedNodeId={setSelectedNodeId}
-  setSelectedEdgeId={setSelectedEdgeId}
-  projectState={projectState}
-  setProjectState={setProjectState}
-  scaleSettings={scaleSettings}
-/>
+          addRequest={addRequest}
+          nodes={nodes}
+          edges={edges}
+          setNodes={setNodes}
+          setEdges={setEdges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          selectedNodeId={selectedNodeId}
+          selectedEdgeId={selectedEdgeId}
+          setSelectedNodeId={setSelectedNodeId}
+          setSelectedEdgeId={setSelectedEdgeId}
+          projectState={projectState}
+          setProjectState={setProjectState}
+          scaleSettings={scaleSettings}
+          onCreateSimpleNetwork={handleCreateSimpleNetwork}
+        />
 
-<PropertiesPanel
-  selectedNode={selectedNode}
-  projectState={projectState}
-  calculationState={calculationState}
-  scaleSettings={scaleSettings}
-  energySettings={energySettings}
-  onUpdateScaleSettings={updateScaleSettings}
-  onUpdateEnergySettings={updateEnergySettings}
-  isCollapsed={!isPropertiesPanelOpen}
-  onToggle={() => setIsPropertiesPanelOpen((current) => !current)}
-  onUpdateSelectedNodeData={updateSelectedNodeData}
-/>
+        <PropertiesPanel
+          selectedNode={selectedNode}
+          projectState={projectState}
+          calculationState={calculationState}
+          scaleSettings={scaleSettings}
+          energySettings={energySettings}
+          onUpdateScaleSettings={updateScaleSettings}
+          onUpdateEnergySettings={updateEnergySettings}
+          isCollapsed={!isPropertiesPanelOpen}
+          onToggle={() => setIsPropertiesPanelOpen((current) => !current)}
+          onResizeStart={handleStartPropertiesResize}
+          widthPx={propertiesPanelWidth}
+          onUpdateSelectedNodeData={updateSelectedNodeData}
+        />
       </main>
 
-      <BottomStatusBar 
+      <BottomStatusBar
         projectState={projectState}
         scaleSettings={scaleSettings}
       />
