@@ -5,6 +5,7 @@ import { SummaryResults } from "./SummaryResults";
 import { ComponentResultsTable } from "./ComponentResultsTable";
 import { WarningsPanel } from "./WarningsPanel";
 import { PumpCatalogPanel } from "./PumpCatalogPanel";
+import { PumpRecommendationPanel } from "./PumpRecommendationPanel";
 
 type ResultsPanelProps = {
   projectState: ProjectVisualState;
@@ -153,6 +154,8 @@ export function ResultsPanel({
       <SummaryResults result={result} />
 
       <ComponentResultsTable rows={result.componentResults} />
+
+      <PumpRecommendationPanel result={result} />
 
       <PumpCatalogPanel result={result} />
 

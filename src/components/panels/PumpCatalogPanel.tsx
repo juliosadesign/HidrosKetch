@@ -72,23 +72,22 @@ export function PumpCatalogPanel({ result }: PumpCatalogPanelProps) {
           </h3>
 
           <p className="mt-2 text-xs leading-5 text-blue-100/80">
-            Estrutura inicial para cadastrar bombas, consultar faixas de vazão e
-            altura manométrica e preparar a recomendação automática das próximas
-            sprints.
+            Catálogo técnico com modelos reais e exemplos didáticos para consultar
+            faixas de vazão, altura manométrica e preparar a recomendação
+            automática das próximas sprints.
           </p>
         </div>
 
         <span className="rounded-full border border-blue-400/30 bg-blue-400/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-blue-100">
-          Sprint 15A
+          Sprint 15B
         </span>
       </div>
 
       <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs leading-5 text-slate-300">
         <p>
-          <strong className="text-slate-100">Aviso:</strong> estes modelos são
-          exemplos simplificados para validar a estrutura do catálogo. A escolha
-          final de uma bomba real deve ser confirmada no catálogo oficial do
-          fabricante.
+          <strong className="text-slate-100">Aviso:</strong> os dados do catálogo servem para pré-seleção. A escolha
+          final da bomba deve ser confirmada no catálogo oficial do fabricante,
+          considerando curva da bomba, curva do sistema e condições reais de instalação.
         </p>
 
         <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-slate-400">

@@ -58,3 +58,28 @@ export type PumpFilterMatch = {
   reasons: string[];
   missingData: string[];
 };
+
+export type PumpRecommendationStatus =
+  | "atende"
+  | "atende_com_folga"
+  | "insuficiente"
+  | "superdimensionada"
+  | "dados_incompletos";
+
+export type PumpRecommendationInput = {
+  requiredFlowM3h: number | null;
+  requiredHeadMca: number | null;
+  estimatedElectricPowerKw: number | null;
+  assumedEfficiencyPercent: number | null;
+};
+
+export type PumpRecommendation = {
+  pump: PumpModel;
+  status: PumpRecommendationStatus;
+  score: number;
+  reasons: string[];
+  missingData: string[];
+  flowMarginPercent: number | null;
+  headMarginPercent: number | null;
+  powerComparison: "abaixo_da_estimativa" | "proxima" | "acima_da_estimativa" | "nao_comparada";
+};
