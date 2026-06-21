@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
+import type { User } from "@supabase/supabase-js";
 import { useEdgesState, useNodesState } from "@xyflow/react";
 
 import { Topbar } from "./Topbar";
@@ -25,6 +26,9 @@ import {
 
 import { buildCalculationResultFromEditor } from "../../engine/reports/buildCalculationResult";
 import { createSimpleHydraulicNetworkTemplate } from "../../editor/templates/simpleNetworkTemplate";
+import { saveProjectToCloud } from "../../lib/cloudProjects";
+import { supabase } from "../../lib/supabaseClient";
+import type { Json } from "../../types/supabase.types";
 
 const initialNodes: HydroFlowNode[] = [];
 const initialEdges: HydroFlowEdge[] = [];
@@ -38,6 +42,12 @@ const PROPERTIES_COLLAPSED_WIDTH = 52;
 const PROPERTIES_DEFAULT_WIDTH = 340;
 const PROPERTIES_MIN_WIDTH = 300;
 const PROPERTIES_MAX_WIDTH = 520;
+const CLOUD_PROJECT_FORMAT_VERSION = "1.0";
+
+type CloudSaveState = {
+  status: "idle" | "saving" | "success" | "error";
+  message: string | null;
+};
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -65,6 +75,15 @@ export function AppLayout() {
 
   const [projectState, setProjectState] =
     useState<ProjectVisualState>("draft");
+
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [cloudProjectId, setCloudProjectId] = useState<string | null>(null);
+  const [cloudVersionNumber, setCloudVersionNumber] = useState(0);
+  const [cloudSaveState, setCloudSaveState] = useState<CloudSaveState>({
+    status: "idle",
+    message: null,
+  });
+  const [projectName] = useState("Projeto HidroSketch");
 
   const [scaleSettings, setScaleSettings] = useState({
     pixelsPerMeter: 40,
@@ -216,6 +235,12 @@ export function AppLayout() {
     setSelectedEdgeId(null);
     setCalculationState(EMPTY_RESULT_STORE);
     setProjectState("outdated");
+    setCloudProjectId(null);
+    setCloudVersionNumber(0);
+    setCloudSaveState({
+      status: "idle",
+      message: null,
+    });
 
     setEnergySettings((current) => ({
       ...current,
@@ -226,6 +251,85 @@ export function AppLayout() {
       operationDaysPerMonth: 30,
       energyTariffBRLKwh: 0.9,
     }));
+  }
+
+  async function handleSaveCloudProject() {
+    if (!supabase) {
+      setCloudSaveState({
+        status: "error",
+        message: "Configure o Supabase antes de salvar na nuvem.",
+      });
+      return;
+    }
+
+    setCloudSaveState({
+      status: "saving",
+      message: "Salvando projeto na nuvem...",
+    });
+
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    const user = userData.user;
+
+    if (userError || !user) {
+      setCloudSaveState({
+        status: "error",
+        message: "Entre na sua conta para salvar projetos na nuvem.",
+      });
+      setAuthUser(null);
+      return;
+    }
+
+    setAuthUser(user);
+
+    const savedAt = new Date().toISOString();
+    const projectJson = {
+      format: "hidrosketch-cloud-project",
+      formatVersion: CLOUD_PROJECT_FORMAT_VERSION,
+      name: projectName,
+      savedAt,
+      editor: {
+        nodes,
+        edges,
+      },
+      settings: {
+        scale: scaleSettings,
+        energy: energySettings,
+      },
+      status: {
+        projectState,
+        calculationStatus: calculationState.status,
+        lastCalculatedAt: calculationState.lastCalculatedAt,
+      },
+      calculation: {
+        lastResult: calculationState.lastResult,
+        lastValidation: calculationState.lastValidation,
+      },
+    } as unknown as Json;
+
+    const saveResult = await saveProjectToCloud({
+      userId: user.id,
+      projectId: cloudProjectId,
+      name: projectName,
+      description:
+        "Projeto salvo pelo HidroSketch com componentes, conexões e configurações técnicas.",
+      projectJson,
+      versionNumber: cloudVersionNumber + 1,
+    });
+
+    if (!saveResult.ok) {
+      setCloudSaveState({
+        status: "error",
+        message: saveResult.message,
+      });
+      return;
+    }
+
+    setCloudProjectId(saveResult.projectId);
+    setCloudVersionNumber(saveResult.versionNumber);
+    setCloudSaveState({
+      status: "success",
+      message: saveResult.message,
+    });
   }
 
   function handleConfirmCalculate() {
@@ -276,6 +380,11 @@ export function AppLayout() {
         onConfirmCalculate={handleConfirmCalculate}
         onCreateSimpleNetwork={handleCreateSimpleNetwork}
         onAddComponent={handleAddComponent}
+        onSaveCloudProject={handleSaveCloudProject}
+        onAuthUserChange={setAuthUser}
+        cloudSaveStatus={cloudSaveState.status}
+        cloudSaveMessage={cloudSaveState.message}
+        isCloudUserLoggedIn={Boolean(authUser)}
         validationErrorCount={validationErrorCount}
       />
 

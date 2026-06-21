@@ -6,7 +6,11 @@ import { supabase } from "../../lib/supabaseClient";
 import { getSupabaseSetupMessage } from "../../lib/supabaseConfig";
 import { AuthModal } from "./AuthModal";
 
-export function UserMenu() {
+type UserMenuProps = {
+  onUserChange?: (user: User | null) => void;
+};
+
+export function UserMenu({ onUserChange }: UserMenuProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(() => Boolean(supabase));
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -24,6 +28,7 @@ export function UserMenu() {
 
         const sessionUser = data.session?.user ?? null;
         setUser(sessionUser);
+        onUserChange?.(sessionUser);
 
         if (sessionUser) {
           await upsertAuthProfile(sessionUser);
@@ -37,6 +42,7 @@ export function UserMenu() {
       (_event, session) => {
         const sessionUser = session?.user ?? null;
         setUser(sessionUser);
+        onUserChange?.(sessionUser);
 
         if (sessionUser) {
           upsertAuthProfile(sessionUser).catch(() => {
@@ -52,7 +58,7 @@ export function UserMenu() {
       isMounted = false;
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, [onUserChange]);
 
   async function handleSignOut() {
     if (!supabase) return;
@@ -66,6 +72,7 @@ export function UserMenu() {
     }
 
     setUser(null);
+    onUserChange?.(null);
   }
 
   if (!supabase) {
@@ -141,6 +148,7 @@ export function UserMenu() {
         onClose={() => setIsAuthOpen(false)}
         onAuthenticated={(authenticatedUser) => {
           setUser(authenticatedUser);
+          onUserChange?.(authenticatedUser);
           setAuthMessage("Login realizado com sucesso.");
         }}
       />
