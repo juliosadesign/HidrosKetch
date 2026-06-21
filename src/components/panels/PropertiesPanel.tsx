@@ -1,4 +1,4 @@
-import type { MouseEvent as ReactMouseEvent } from "react";
+import { useState, type MouseEvent as ReactMouseEvent } from "react";
 
 import type {
     EditorScaleSettings,
@@ -39,45 +39,71 @@ import type {
   };
 
   function ComponentHelpCard({ node }: { node: HydroFlowNode }) {
+    const [isExpanded, setIsExpanded] = useState(false);
     const guide = getComponentUsageGuide(
       String(node.data.catalogItemId ?? ""),
       node.data.componentKind
     );
+    const summary =
+      guide.purpose.length > 130
+        ? `${guide.purpose.slice(0, 127).trim()}...`
+        : guide.purpose;
 
     return (
-      <section className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-cyan-300">
-          Como usar este componente?
-        </h3>
+      <section className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4 transition-all">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-cyan-300">
+              Como usar este componente?
+            </h3>
 
-        <p className="mt-3 text-sm font-semibold text-white">{guide.title}</p>
+            <p className="mt-2 text-sm font-semibold text-white">
+              {guide.title}
+            </p>
+          </div>
 
-        <p className="mt-2 text-xs leading-5 text-cyan-50/90">
-          {guide.purpose}
-        </p>
-
-        <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3">
-          <p className="text-xs font-semibold text-slate-200">Quando usar</p>
-          <p className="mt-1 text-xs leading-5 text-slate-400">
-            {guide.whenToUse}
-          </p>
+          <button
+            type="button"
+            onClick={() => setIsExpanded((current) => !current)}
+            className="rounded-xl border border-cyan-500/40 bg-slate-950/70 px-3 py-2 text-xs font-semibold text-cyan-200 transition hover:bg-cyan-500/15"
+            aria-expanded={isExpanded}
+          >
+            {isExpanded ? "Ocultar explicação" : "Ver explicação"}
+          </button>
         </div>
 
-        <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3">
-          <p className="text-xs font-semibold text-slate-200">
-            Campos importantes
-          </p>
-          <ul className="mt-2 space-y-1 text-xs leading-5 text-slate-400">
-            {guide.importantFields.map((field) => (
-              <li key={field}>• {field}</li>
-            ))}
-          </ul>
-        </div>
-
-        <p className="mt-3 rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-3 text-xs leading-5 text-yellow-50/90">
-          <strong className="text-yellow-200">Observação técnica:</strong>{" "}
-          {guide.technicalNote}
+        <p className="mt-3 text-xs leading-5 text-cyan-50/90">
+          {summary}
         </p>
+
+        {isExpanded && (
+          <div className="mt-4 space-y-3">
+            <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+              <p className="text-xs font-semibold text-slate-200">
+                Quando usar
+              </p>
+              <p className="mt-1 text-xs leading-5 text-slate-400">
+                {guide.whenToUse}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+              <p className="text-xs font-semibold text-slate-200">
+                Campos importantes
+              </p>
+              <ul className="mt-2 space-y-1 text-xs leading-5 text-slate-400">
+                {guide.importantFields.map((field) => (
+                  <li key={field}>• {field}</li>
+                ))}
+              </ul>
+            </div>
+
+            <p className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-3 text-xs leading-5 text-yellow-50/90">
+              <strong className="text-yellow-200">Observação técnica:</strong>{" "}
+              {guide.technicalNote}
+            </p>
+          </div>
+        )}
       </section>
     );
   }
@@ -246,7 +272,7 @@ import type {
 
         <div className="space-y-4">
           {renderContent()}
-          {selectedNode && <ComponentHelpCard node={selectedNode} />}
+          {selectedNode && <ComponentHelpCard key={selectedNode.id} node={selectedNode} />}
         </div>
       </aside>
     );
