@@ -4,12 +4,14 @@ type HorizontalRulerProps = {
   enabled: boolean;
   pixelsPerMeter: number;
   widthPx?: number;
+  offsetLeftPx?: number;
 };
 
 export function HorizontalRuler({
   enabled,
   pixelsPerMeter,
   widthPx = 2400,
+  offsetLeftPx = 0,
 }: HorizontalRulerProps) {
   if (!enabled) {
     return null;
@@ -29,7 +31,13 @@ export function HorizontalRuler({
   });
 
   return (
-    <div className="pointer-events-none absolute left-0 top-0 z-20 h-8 w-full border-b border-slate-700 bg-slate-950/90">
+    <div
+      className="pointer-events-none absolute top-0 z-30 h-8 border-b border-slate-700 bg-slate-950/95 shadow-lg shadow-slate-950/40"
+      style={{
+        left: offsetLeftPx,
+        width: `calc(100% - ${offsetLeftPx}px)`,
+      }}
+    >
       {ticks.map((tick) => (
         <div
           key={tick.x}

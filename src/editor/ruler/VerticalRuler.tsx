@@ -4,12 +4,14 @@ type VerticalRulerProps = {
   enabled: boolean;
   pixelsPerMeter: number;
   heightPx?: number;
+  offsetTopPx?: number;
 };
 
 export function VerticalRuler({
   enabled,
   pixelsPerMeter,
   heightPx = 1600,
+  offsetTopPx = 0,
 }: VerticalRulerProps) {
   if (!enabled) {
     return null;
@@ -29,7 +31,13 @@ export function VerticalRuler({
   });
 
   return (
-    <div className="pointer-events-none absolute left-0 top-0 z-20 h-full w-12 border-r border-slate-700 bg-slate-950/90">
+    <div
+      className="pointer-events-none absolute left-0 z-30 w-12 border-r border-slate-700 bg-slate-950/95 shadow-lg shadow-slate-950/40"
+      style={{
+        top: offsetTopPx,
+        height: `calc(100% - ${offsetTopPx}px)`,
+      }}
+    >
       {ticks.map((tick) => (
         <div
           key={tick.y}
