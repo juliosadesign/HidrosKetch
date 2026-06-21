@@ -3,6 +3,7 @@ import type { ComponentCatalogItem } from "../../domain/catalogs/componentCatalo
 import { ConfirmCalculateButton } from "../toolbar/ConfirmCalculateButton";
 import { QuickComponentSearch } from "./QuickComponentSearch";
 import { SupabaseStatusBadge } from "../cloud/SupabaseStatusBadge";
+import { UserMenu } from "../auth/UserMenu";
 
 type TopbarProps = {
   projectState: ProjectVisualState;
@@ -61,6 +62,8 @@ export function Topbar({
         )}
 
         <SupabaseStatusBadge />
+
+        <UserMenu />
 
         <button
           type="button"
