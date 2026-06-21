@@ -4,6 +4,7 @@ import type { StoredCalculationState } from "../../store/resultStore";
 import { SummaryResults } from "./SummaryResults";
 import { ComponentResultsTable } from "./ComponentResultsTable";
 import { WarningsPanel } from "./WarningsPanel";
+import { PumpCatalogPanel } from "./PumpCatalogPanel";
 
 type ResultsPanelProps = {
   projectState: ProjectVisualState;
@@ -152,6 +153,8 @@ export function ResultsPanel({
       <SummaryResults result={result} />
 
       <ComponentResultsTable rows={result.componentResults} />
+
+      <PumpCatalogPanel result={result} />
 
       <WarningsPanel
         validationWarnings={validation?.warnings ?? []}
