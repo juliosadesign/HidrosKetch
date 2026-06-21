@@ -4,12 +4,14 @@ import { ConfirmCalculateButton } from "../toolbar/ConfirmCalculateButton";
 type TopbarProps = {
   projectState: ProjectVisualState;
   onConfirmCalculate: () => void;
+  onCreateSimpleNetwork: () => void;
   validationErrorCount: number;
 };
 
 export function Topbar({
   projectState,
   onConfirmCalculate,
+  onCreateSimpleNetwork,
   validationErrorCount,
 }: TopbarProps) {
   return (
@@ -54,6 +56,15 @@ export function Topbar({
             Erros: {validationErrorCount}
           </span>
         )}
+
+        <button
+          type="button"
+          onClick={onCreateSimpleNetwork}
+          className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-200 transition hover:bg-cyan-500/20"
+          title="Monta automaticamente um exemplo didático: reservatório, bomba, canos, joelho e tanque."
+        >
+          Montar rede simples
+        </button>
 
         <button className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">
           Novo

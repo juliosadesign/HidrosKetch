@@ -23,6 +23,7 @@ import {
 } from "../../store/resultStore";
 
 import { buildCalculationResultFromEditor } from "../../engine/reports/buildCalculationResult";
+import { createSimpleHydraulicNetworkTemplate } from "../../editor/templates/simpleNetworkTemplate";
 
 const initialNodes: HydroFlowNode[] = [];
 const initialEdges: HydroFlowEdge[] = [];
@@ -130,6 +131,27 @@ export function AppLayout() {
     setProjectState("outdated");
   }
 
+  function handleCreateSimpleNetwork() {
+    const template = createSimpleHydraulicNetworkTemplate();
+
+    setNodes(template.nodes);
+    setEdges(template.edges);
+    setSelectedNodeId(null);
+    setSelectedEdgeId(null);
+    setCalculationState(EMPTY_RESULT_STORE);
+    setProjectState("outdated");
+
+    setEnergySettings((current) => ({
+      ...current,
+      originElevationM: 0,
+      destinationElevationM: 10,
+      requiredOutletPressureKpa: 50,
+      operationHoursPerDay: 2,
+      operationDaysPerMonth: 30,
+      energyTariffBRLKwh: 0.9,
+    }));
+  }
+
   function handleConfirmCalculate() {
     const calculationAttempt = buildCalculationResultFromEditor({
       nodes,
@@ -185,6 +207,7 @@ export function AppLayout() {
       <Topbar
         projectState={projectState}
         onConfirmCalculate={handleConfirmCalculate}
+        onCreateSimpleNetwork={handleCreateSimpleNetwork}
         validationErrorCount={validationErrorCount}
       />
 
