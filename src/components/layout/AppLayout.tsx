@@ -8,6 +8,7 @@ import { Sidebar } from "./Sidebar";
 import { BottomStatusBar } from "./BottomStatusBar";
 import { HydroSketchCanvas } from "../../editor/HydroSketchCanvas";
 import { PropertiesPanel } from "../panels/PropertiesPanel";
+import { MyProjectsModal } from "../cloud/MyProjectsModal";
 
 import type { ComponentCatalogItem } from "../../domain/catalogs/componentCatalog";
 import type {
@@ -26,7 +27,11 @@ import {
 
 import { buildCalculationResultFromEditor } from "../../engine/reports/buildCalculationResult";
 import { createSimpleHydraulicNetworkTemplate } from "../../editor/templates/simpleNetworkTemplate";
-import { saveProjectToCloud } from "../../lib/cloudProjects";
+import {
+  listUserCloudProjects,
+  saveProjectToCloud,
+  type CloudProjectRecord,
+} from "../../lib/cloudProjects";
 import { supabase } from "../../lib/supabaseClient";
 import type { Json } from "../../types/supabase.types";
 
@@ -48,6 +53,27 @@ type CloudSaveState = {
   status: "idle" | "saving" | "success" | "error";
   message: string | null;
 };
+
+type CloudProjectJsonRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is CloudProjectJsonRecord {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isProjectVisualState(value: unknown): value is ProjectVisualState {
+  return value === "draft" || value === "outdated" || value === "calculated";
+}
+
+function isCalculationStateStatus(
+  value: unknown
+): value is StoredCalculationState["status"] {
+  return (
+    value === "idle" ||
+    value === "blocked" ||
+    value === "success" ||
+    value === "failed"
+  );
+}
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -83,6 +109,10 @@ export function AppLayout() {
     status: "idle",
     message: null,
   });
+  const [isMyProjectsOpen, setIsMyProjectsOpen] = useState(false);
+  const [cloudProjects, setCloudProjects] = useState<CloudProjectRecord[]>([]);
+  const [isLoadingCloudProjects, setIsLoadingCloudProjects] = useState(false);
+  const [cloudProjectsError, setCloudProjectsError] = useState<string | null>(null);
   const [projectName] = useState("Projeto HidroSketch");
 
   const [scaleSettings, setScaleSettings] = useState({
@@ -332,6 +362,123 @@ export function AppLayout() {
     });
   }
 
+
+
+  async function handleOpenMyProjects() {
+    if (!authUser) {
+      setCloudSaveState({
+        status: "error",
+        message: "Entre na sua conta para acessar seus projetos salvos.",
+      });
+      return;
+    }
+
+    setIsMyProjectsOpen(true);
+    await handleRefreshCloudProjects(authUser.id);
+  }
+
+  async function handleRefreshCloudProjects(userId = authUser?.id) {
+    if (!userId) {
+      setCloudProjectsError("Entre na sua conta para listar seus projetos.");
+      return;
+    }
+
+    setIsLoadingCloudProjects(true);
+    setCloudProjectsError(null);
+
+    const listResult = await listUserCloudProjects(userId);
+
+    if (!listResult.ok) {
+      setCloudProjects([]);
+      setCloudProjectsError(listResult.message);
+      setIsLoadingCloudProjects(false);
+      return;
+    }
+
+    setCloudProjects(listResult.projects);
+    setIsLoadingCloudProjects(false);
+  }
+
+  function handleOpenCloudProject(project: CloudProjectRecord) {
+    const projectJson = project.projectJson as unknown;
+
+    if (!isRecord(projectJson) || !isRecord(projectJson.editor)) {
+      setCloudProjectsError(
+        "Este projeto não possui dados válidos para abrir no editor."
+      );
+      return;
+    }
+
+    const editor = projectJson.editor;
+
+    if (!Array.isArray(editor.nodes) || !Array.isArray(editor.edges)) {
+      setCloudProjectsError(
+        "Este projeto não contém componentes e conexões em formato válido."
+      );
+      return;
+    }
+
+    setNodes(editor.nodes as HydroFlowNode[]);
+    setEdges(editor.edges as HydroFlowEdge[]);
+    setSelectedNodeId(null);
+    setSelectedEdgeId(null);
+
+    if (isRecord(projectJson.settings)) {
+      const settings = projectJson.settings;
+
+      if (isRecord(settings.scale)) {
+        setScaleSettings((current) => ({
+          ...current,
+          ...(settings.scale as Partial<typeof current>),
+        }));
+      }
+
+      if (isRecord(settings.energy)) {
+        setEnergySettings((current) => ({
+          ...current,
+          ...(settings.energy as Partial<ProjectEnergySettings>),
+        }));
+      }
+    }
+
+    if (isRecord(projectJson.status)) {
+      const savedProjectState = projectJson.status.projectState;
+      const savedCalculationStatus = projectJson.status.calculationStatus;
+      const savedLastCalculatedAt = projectJson.status.lastCalculatedAt;
+
+      setProjectState(
+        isProjectVisualState(savedProjectState) ? savedProjectState : "outdated"
+      );
+
+      setCalculationState({
+        status: isCalculationStateStatus(savedCalculationStatus)
+          ? savedCalculationStatus
+          : "idle",
+        lastResult:
+          isRecord(projectJson.calculation) && "lastResult" in projectJson.calculation
+            ? (projectJson.calculation.lastResult as StoredCalculationState["lastResult"])
+            : null,
+        lastValidation:
+          isRecord(projectJson.calculation) && "lastValidation" in projectJson.calculation
+            ? (projectJson.calculation.lastValidation as StoredCalculationState["lastValidation"])
+            : null,
+        lastCalculatedAt:
+          typeof savedLastCalculatedAt === "string" ? savedLastCalculatedAt : null,
+      });
+    } else {
+      setCalculationState(EMPTY_RESULT_STORE);
+      setProjectState("outdated");
+    }
+
+    setCloudProjectId(project.id);
+    setCloudVersionNumber(0);
+    setCloudSaveState({
+      status: "success",
+      message: `Projeto “${project.name || "sem título"}” aberto da nuvem.`,
+    });
+    setIsMyProjectsOpen(false);
+  }
+
   function handleConfirmCalculate() {
     const calculationAttempt = buildCalculationResultFromEditor({
       nodes,
@@ -381,6 +528,7 @@ export function AppLayout() {
         onCreateSimpleNetwork={handleCreateSimpleNetwork}
         onAddComponent={handleAddComponent}
         onSaveCloudProject={handleSaveCloudProject}
+        onOpenMyProjects={handleOpenMyProjects}
         onAuthUserChange={setAuthUser}
         cloudSaveStatus={cloudSaveState.status}
         cloudSaveMessage={cloudSaveState.message}
@@ -435,6 +583,16 @@ export function AppLayout() {
           onUpdateSelectedNodeData={updateSelectedNodeData}
         />
       </main>
+
+      <MyProjectsModal
+        isOpen={isMyProjectsOpen}
+        isLoading={isLoadingCloudProjects}
+        errorMessage={cloudProjectsError}
+        projects={cloudProjects}
+        onClose={() => setIsMyProjectsOpen(false)}
+        onRefresh={() => handleRefreshCloudProjects()}
+        onOpenProject={handleOpenCloudProject}
+      />
 
       <BottomStatusBar
         projectState={projectState}

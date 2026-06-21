@@ -14,6 +14,7 @@ type TopbarProps = {
   onCreateSimpleNetwork: () => void;
   onAddComponent: (component: ComponentCatalogItem) => void;
   onSaveCloudProject: () => void;
+  onOpenMyProjects: () => void;
   onAuthUserChange: (user: User | null) => void;
   cloudSaveStatus: CloudSaveStatus;
   cloudSaveMessage: string | null;
@@ -46,6 +47,7 @@ export function Topbar({
   onCreateSimpleNetwork,
   onAddComponent,
   onSaveCloudProject,
+  onOpenMyProjects,
   onAuthUserChange,
   cloudSaveStatus,
   cloudSaveMessage,
@@ -87,6 +89,20 @@ export function Topbar({
           <SupabaseStatusBadge />
 
           <UserMenu onUserChange={onAuthUserChange} />
+
+          <button
+            type="button"
+            onClick={onOpenMyProjects}
+            disabled={!isCloudUserLoggedIn}
+            className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500"
+            title={
+              isCloudUserLoggedIn
+                ? "Lista os projetos salvos na sua conta Supabase."
+                : "Entre na sua conta para acessar seus projetos salvos."
+            }
+          >
+            Meus projetos
+          </button>
 
           <div className="relative">
             <button

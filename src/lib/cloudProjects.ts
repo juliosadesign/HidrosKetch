@@ -114,3 +114,60 @@ export async function saveProjectToCloud(
     message: "Projeto salvo na nuvem.",
   };
 }
+
+export type CloudProjectRecord = {
+  id: string;
+  name: string;
+  description: string | null;
+  projectJson: Json;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+export type ListCloudProjectsResult = {
+  ok: boolean;
+  projects: CloudProjectRecord[];
+  message: string;
+};
+
+export async function listUserCloudProjects(
+  userId: string
+): Promise<ListCloudProjectsResult> {
+  if (!supabase) {
+    return {
+      ok: false,
+      projects: [],
+      message: "Supabase não está configurado neste ambiente.",
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("projects")
+    .select("id,name,description,project_json,created_at,updated_at")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    return {
+      ok: false,
+      projects: [],
+      message: `Não foi possível carregar seus projetos: ${error.message}`,
+    };
+  }
+
+  return {
+    ok: true,
+    projects: (data ?? []).map((project) => ({
+      id: project.id,
+      name: project.name,
+      description: project.description,
+      projectJson: project.project_json,
+      createdAt: project.created_at,
+      updatedAt: project.updated_at,
+    })),
+    message:
+      data && data.length > 0
+        ? "Projetos carregados."
+        : "Nenhum projeto salvo na nuvem ainda.",
+  };
+}
