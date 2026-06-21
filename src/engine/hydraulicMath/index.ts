@@ -7,4 +7,5 @@ export * from "./pump";
 export * from "./pressure";
 export * from "./head";
 export * from "./hydraulicEngine.types";
-export * from "./hydraulicEngine";
+export * from "./hydraulicEngine";export * from "./pumpPower";
+export * from "./energyCost";

@@ -74,6 +74,11 @@ export type ProjectHydraulicSettings = {
   // Bomba padrão da V1.
   defaultPumpHeadMca: number;
 
+  // Sprint 14C — dados operacionais para estimativa de consumo de energia.
+  operationHoursPerDay: number;
+  operationDaysPerMonth: number;
+  energyTariffBRLKwh: number;
+
   // Modo padrão para tês/ramificações.
   branchingMode: BranchingMode;
 };

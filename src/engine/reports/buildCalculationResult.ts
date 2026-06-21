@@ -149,6 +149,15 @@ const resultWithDate: HydroCalculationResult = {
           requiredOutletPressureKpa:
             energySettings?.requiredOutletPressureKpa ??
             project.settings.requiredOutletPressureKpa,
+          operationHoursPerDay:
+            energySettings?.operationHoursPerDay ??
+            project.settings.operationHoursPerDay,
+          operationDaysPerMonth:
+            energySettings?.operationDaysPerMonth ??
+            project.settings.operationDaysPerMonth,
+          energyTariffBRLKwh:
+            energySettings?.energyTariffBRLKwh ??
+            project.settings.energyTariffBRLKwh,
         },
         components,
         connections,
@@ -364,6 +373,7 @@ const resultWithDate: HydroCalculationResult = {
         id: component.id,
         name: component.name,
         headMca: component.data.headMca,
+        efficiencyPercent: component.data.efficiencyPercent,
       }));
   
     const originElevationM = findOriginElevationM(
@@ -389,6 +399,9 @@ const resultWithDate: HydroCalculationResult = {
       initialPressureHeadMca,
       requiredOutletPressureKpa,
       requiredPressureHeadMca,
+      operationHoursPerDay: project.settings.operationHoursPerDay,
+      operationDaysPerMonth: project.settings.operationDaysPerMonth,
+      energyTariffBRLKwh: project.settings.energyTariffBRLKwh,
       lossComponents,
       pumps,
     };

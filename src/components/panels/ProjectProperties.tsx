@@ -130,6 +130,85 @@ export function ProjectProperties({
         </div>
       </div>
 
+      <div className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 p-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-yellow-300">
+          Consumo e custo de energia
+        </h3>
+
+        <p className="mt-2 text-xs leading-5 text-yellow-100/80">
+          Estes campos não recalculam sozinhos. Eles ficam salvos como dados de
+          operação e entram no resultado somente depois de clicar em “Confirmar
+          e recalcular”.
+        </p>
+
+        <div className="mt-4 space-y-3">
+          <label className="block text-xs text-slate-400">
+            Horas de uso por dia
+            <input
+              type="number"
+              min={0}
+              step="0.5"
+              value={energySettings.operationHoursPerDay}
+              onChange={(event) =>
+                onUpdateEnergySettings({
+                  operationHoursPerDay: Math.max(
+                    0,
+                    readNumberInput(event.target.value)
+                  ),
+                })
+              }
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+            />
+          </label>
+
+          <label className="block text-xs text-slate-400">
+            Dias de uso por mês
+            <input
+              type="number"
+              min={0}
+              max={31}
+              step="1"
+              value={energySettings.operationDaysPerMonth}
+              onChange={(event) =>
+                onUpdateEnergySettings({
+                  operationDaysPerMonth: Math.min(
+                    31,
+                    Math.max(0, readNumberInput(event.target.value))
+                  ),
+                })
+              }
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+            />
+          </label>
+
+          <label className="block text-xs text-slate-400">
+            Tarifa de energia R$/kWh
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={energySettings.energyTariffBRLKwh}
+              onChange={(event) =>
+                onUpdateEnergySettings({
+                  energyTariffBRLKwh: Math.max(
+                    0,
+                    readNumberInput(event.target.value)
+                  ),
+                })
+              }
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+            />
+          </label>
+
+          <p className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs leading-5 text-slate-300">
+            Valores padrão: 2 horas por dia, 30 dias por mês e tarifa de R$ 0,90/kWh.
+            A potência elétrica é estimada de forma simplificada a partir da vazão,
+            da altura manométrica total e de uma eficiência padrão quando a bomba
+            não informar rendimento próprio.
+          </p>
+        </div>
+      </div>
+
       <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-cyan-300">
           Configurações CAD-lite

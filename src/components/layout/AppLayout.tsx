@@ -58,6 +58,9 @@ export function AppLayout() {
       originElevationM: 0,
       destinationElevationM: 0,
       requiredOutletPressureKpa: 0,
+      operationHoursPerDay: 2,
+      operationDaysPerMonth: 30,
+      energyTariffBRLKwh: 0.9,
     });
     
     function updateScaleSettings(updates: Partial<typeof scaleSettings>) {

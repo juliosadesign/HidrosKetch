@@ -47,6 +47,18 @@ export type HydroCalculationResult = {
   requiredPressureHeadMca: number | null;
   totalDynamicHeadMca: number | null;
 
+  // Sprint 14C — potência, consumo e custo estimados da bomba.
+  hydraulicPowerW: number | null;
+  hydraulicPowerKw: number | null;
+  electricPowerKw: number | null;
+  pumpEfficiencyPercent: number | null;
+  operationHoursPerDay: number | null;
+  operationDaysPerMonth: number | null;
+  energyTariffBRLKwh: number | null;
+  dailyConsumptionKwh: number | null;
+  monthlyConsumptionKwh: number | null;
+  monthlyEnergyCostBRL: number | null;
+
   componentResults: ComponentCalculationResult[];
 
   warnings: CalculationWarning[];

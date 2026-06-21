@@ -24,6 +24,7 @@ export type LocalLossComponentInput = {
     id: string;
     name: string;
     headMca: number;
+    efficiencyPercent?: number;
   };
   
   export type HydraulicPathCalculationInput = {
@@ -43,6 +44,11 @@ export type LocalLossComponentInput = {
 
     // Valor original em kPa, mantido para exibição no painel de resultados.
     requiredOutletPressureKpa?: number;
+
+    // Sprint 14C — dados operacionais para estimativa de consumo.
+    operationHoursPerDay?: number;
+    operationDaysPerMonth?: number;
+    energyTariffBRLKwh?: number;
   
     lossComponents: LocalLossComponentInput[];
   

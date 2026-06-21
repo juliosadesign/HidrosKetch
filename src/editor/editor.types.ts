@@ -56,6 +56,11 @@ export type ProjectEnergySettings = {
   // Pressão mínima desejada no ponto final, em kPa.
   // Nesta sprint ela entra apenas como carga necessária simplificada.
   requiredOutletPressureKpa: number;
+
+  // Sprint 14C — dados operacionais para estimar consumo e custo de energia.
+  operationHoursPerDay: number;
+  operationDaysPerMonth: number;
+  energyTariffBRLKwh: number;
 };
 
 export type UpdateProjectEnergySettings = (

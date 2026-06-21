@@ -12,6 +12,8 @@ import { calculateLocalLossMca, sumLocalLossesMca } from "./localLoss";
 import { sumPumpHeadsMca } from "./pump";
 import { calculateResidualHeadMca, estimatePressureKpaFromHeadMca } from "./pressure";
 import { calculateGeometricHeadM, calculateTotalDynamicHeadMca } from "./head";
+import { calculatePumpPower, DEFAULT_PUMP_EFFICIENCY_PERCENT } from "./pumpPower";
+import { calculateEnergyCost } from "./energyCost";
 
 // Calcula a perda localizada de um único componente.
 // Essa função é pura: recebe dados e devolve resultado.
@@ -87,6 +89,24 @@ export function runHydraulicPathCalculation(
       requiredPressureHeadMca,
     });
 
+    const pumpEfficiencyPercent = resolvePumpEfficiencyPercent(input.pumps);
+    const pumpPower = calculatePumpPower({
+      flowM3s: litersPerSecondToCubicMetersPerSecond(input.flowLps),
+      totalDynamicHeadMca,
+      efficiencyPercent: pumpEfficiencyPercent,
+    });
+
+    const operationHoursPerDay = clampNonNegative(input.operationHoursPerDay ?? 2);
+    const operationDaysPerMonth = clampNonNegative(input.operationDaysPerMonth ?? 30);
+    const energyTariffBRLKwh = clampNonNegative(input.energyTariffBRLKwh ?? 0.9);
+
+    const energyCost = calculateEnergyCost({
+      electricPowerKw: pumpPower.electricPowerKw,
+      operationHoursPerDay,
+      operationDaysPerMonth,
+      energyTariffBRLKwh,
+    });
+
     const residualHeadMca = calculateResidualHeadMca({
       initialPressureHeadMca: input.initialPressureHeadMca ?? 0,
       totalPumpHeadMca,
@@ -114,6 +134,16 @@ export function runHydraulicPathCalculation(
       requiredOutletPressureKpa: input.requiredOutletPressureKpa ?? 0,
       requiredPressureHeadMca,
       totalDynamicHeadMca,
+      hydraulicPowerW: pumpPower.hydraulicPowerW,
+      hydraulicPowerKw: pumpPower.hydraulicPowerKw,
+      electricPowerKw: pumpPower.electricPowerKw,
+      pumpEfficiencyPercent: pumpPower.pumpEfficiencyPercent,
+      operationHoursPerDay,
+      operationDaysPerMonth,
+      energyTariffBRLKwh,
+      dailyConsumptionKwh: energyCost.dailyConsumptionKwh,
+      monthlyConsumptionKwh: energyCost.monthlyConsumptionKwh,
+      monthlyEnergyCostBRL: energyCost.monthlyEnergyCostBRL,
 
       componentResults,
 
@@ -133,6 +163,11 @@ export function runHydraulicPathCalculation(
           message:
             "A altura manométrica total é uma estimativa simplificada: desnível + perdas localizadas + pressão mínima desejada.",
         },
+        {
+          id: "sprint14c_energy_cost_estimate",
+          message:
+            "O consumo e o custo de energia são estimativas didáticas e podem variar conforme rendimento real da bomba, tempo de uso, rede hidráulica e tarifa da concessionária.",
+        },
       ],
 
       errors: [],
@@ -145,6 +180,8 @@ export function runHydraulicPathCalculation(
         "Pressão estimada apenas para caminho simples ou caminho controlado.",
         "Desnível geométrico calculado por Δz = z_destino - z_origem.",
         "Altura manométrica total estimada por HMT = Δz + perdas + pressão mínima desejada.",
+        "Potência elétrica estimada por P_elétrica = P_hidráulica / eficiência.",
+        "Consumo mensal estimado por energia = potência elétrica × horas por dia × dias por mês.",
         "Perdas localizadas calculadas por hloc = K · V²/(2g).",
       ],
     };
@@ -168,6 +205,16 @@ export function runHydraulicPathCalculation(
       requiredOutletPressureKpa: null,
       requiredPressureHeadMca: null,
       totalDynamicHeadMca: null,
+      hydraulicPowerW: null,
+      hydraulicPowerKw: null,
+      electricPowerKw: null,
+      pumpEfficiencyPercent: null,
+      operationHoursPerDay: null,
+      operationDaysPerMonth: null,
+      energyTariffBRLKwh: null,
+      dailyConsumptionKwh: null,
+      monthlyConsumptionKwh: null,
+      monthlyEnergyCostBRL: null,
 
       componentResults: [],
 
@@ -183,4 +230,26 @@ export function runHydraulicPathCalculation(
       assumptions: [],
     };
   }
+}
+
+function resolvePumpEfficiencyPercent(pumps: { efficiencyPercent?: number }[]): number {
+  const validEfficiencies = pumps
+    .map((pump) => pump.efficiencyPercent)
+    .filter((value): value is number =>
+      typeof value === "number" && Number.isFinite(value) && value > 0
+    );
+
+  if (validEfficiencies.length === 0) {
+    return DEFAULT_PUMP_EFFICIENCY_PERCENT;
+  }
+
+  const average =
+    validEfficiencies.reduce((sum, value) => sum + value, 0) /
+    validEfficiencies.length;
+
+  return Math.min(100, average);
+}
+
+function clampNonNegative(value: number): number {
+  return Number.isFinite(value) ? Math.max(0, value) : 0;
 }

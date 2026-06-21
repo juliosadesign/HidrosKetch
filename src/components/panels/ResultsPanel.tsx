@@ -37,6 +37,11 @@ function ResultsHelpCard() {
           desejada.
         </p>
         <p>
+          <strong className="text-slate-200">Consumo e custo</strong> usam a
+          potência elétrica estimada, as horas de uso, os dias por mês e a tarifa
+          em R$/kWh para prever gasto mensal aproximado.
+        </p>
+        <p>
           <strong className="text-slate-200">Alertas</strong> indicam dados
           ausentes, hipóteses simplificadas ou pontos que precisam ser revisados
           antes de usar o resultado como pré-dimensionamento.

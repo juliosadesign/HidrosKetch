@@ -12,6 +12,17 @@ function formatNumber(value: number | null | undefined, decimals = 4): string {
   return value.toFixed(decimals);
 }
 
+function formatCurrencyBRL(value: number | null | undefined): string {
+  if (value === null || value === undefined) {
+    return "-";
+  }
+
+  return value.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
 function describeGeometricHead(value: number | null): string {
   if (value === null) {
     return "Desnível ainda não calculado.";
@@ -118,6 +129,62 @@ export function SummaryResults({ result }: SummaryResultsProps) {
           Carga da bomba é a energia adicionada ao sistema. Se a carga exigida
           for maior que a carga disponível, a bomba pode não atender ao sistema.
         </p>
+
+        <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-3">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-yellow-300">
+            Energia e custo estimado
+          </h4>
+
+          <div className="mt-3 space-y-3">
+            <div className="flex justify-between gap-4">
+              <span className="text-yellow-100/80">Potência hidráulica</span>
+              <span className="font-semibold text-white">
+                {formatNumber(result.hydraulicPowerKw, 4)} kW
+              </span>
+            </div>
+
+            <div className="flex justify-between gap-4">
+              <span className="text-yellow-100/80">Potência elétrica estimada</span>
+              <span className="font-semibold text-white">
+                {formatNumber(result.electricPowerKw, 4)} kW
+              </span>
+            </div>
+
+            <div className="flex justify-between gap-4">
+              <span className="text-yellow-100/80">Eficiência usada</span>
+              <span className="font-semibold text-white">
+                {formatNumber(result.pumpEfficiencyPercent, 0)}%
+              </span>
+            </div>
+
+            <div className="flex justify-between gap-4">
+              <span className="text-yellow-100/80">Consumo diário</span>
+              <span className="font-semibold text-white">
+                {formatNumber(result.dailyConsumptionKwh, 4)} kWh
+              </span>
+            </div>
+
+            <div className="flex justify-between gap-4">
+              <span className="text-yellow-100/80">Consumo mensal</span>
+              <span className="font-semibold text-white">
+                {formatNumber(result.monthlyConsumptionKwh, 4)} kWh
+              </span>
+            </div>
+
+            <div className="flex justify-between gap-4">
+              <span className="text-yellow-100/80">Custo mensal estimado</span>
+              <span className="font-semibold text-white">
+                {formatCurrencyBRL(result.monthlyEnergyCostBRL)}
+              </span>
+            </div>
+          </div>
+
+          <p className="mt-3 text-xs leading-5 text-yellow-100/80">
+            Este valor é uma estimativa. O consumo real pode variar conforme o
+            rendimento da bomba, tempo real de uso, variação da rede hidráulica
+            e tarifa da concessionária.
+          </p>
+        </div>
 
         <div className="flex justify-between gap-4">
           <span className="text-slate-400">Carga residual</span>
