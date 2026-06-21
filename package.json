@@ -12,6 +12,7 @@
     "test:validation": "tsx src/engine/validation/validationManualTest.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
     "@tailwindcss/vite": "^4.3.0",
     "@xyflow/react": "^12.11.0",
     "react": "^19.2.6",

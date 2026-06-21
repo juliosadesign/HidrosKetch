@@ -2,6 +2,7 @@ import type { ProjectVisualState } from "../../editor/editor.types";
 import type { ComponentCatalogItem } from "../../domain/catalogs/componentCatalog";
 import { ConfirmCalculateButton } from "../toolbar/ConfirmCalculateButton";
 import { QuickComponentSearch } from "./QuickComponentSearch";
+import { SupabaseStatusBadge } from "../cloud/SupabaseStatusBadge";
 
 type TopbarProps = {
   projectState: ProjectVisualState;
@@ -58,6 +59,8 @@ export function Topbar({
             Erros: {validationErrorCount}
           </span>
         )}
+
+        <SupabaseStatusBadge />
 
         <button
           type="button"
