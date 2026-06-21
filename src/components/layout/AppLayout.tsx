@@ -275,6 +275,7 @@ export function AppLayout() {
         projectState={projectState}
         onConfirmCalculate={handleConfirmCalculate}
         onCreateSimpleNetwork={handleCreateSimpleNetwork}
+        onAddComponent={handleAddComponent}
         validationErrorCount={validationErrorCount}
       />
 

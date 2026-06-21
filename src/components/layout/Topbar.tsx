@@ -1,10 +1,13 @@
 import type { ProjectVisualState } from "../../editor/editor.types";
+import type { ComponentCatalogItem } from "../../domain/catalogs/componentCatalog";
 import { ConfirmCalculateButton } from "../toolbar/ConfirmCalculateButton";
+import { QuickComponentSearch } from "./QuickComponentSearch";
 
 type TopbarProps = {
   projectState: ProjectVisualState;
   onConfirmCalculate: () => void;
   onCreateSimpleNetwork: () => void;
+  onAddComponent: (component: ComponentCatalogItem) => void;
   validationErrorCount: number;
 };
 
@@ -24,11 +27,13 @@ export function Topbar({
   projectState,
   onConfirmCalculate,
   onCreateSimpleNetwork,
+  onAddComponent,
   validationErrorCount,
 }: TopbarProps) {
   return (
-    <header className="flex h-16 items-center justify-between gap-4 border-b border-slate-800 bg-slate-900 px-4">
-      <div className="flex min-w-0 items-center gap-3">
+    <header className="border-b border-slate-800 bg-slate-900">
+      <div className="flex min-h-16 items-center justify-between gap-4 px-4 py-3">
+        <div className="flex min-w-0 items-center gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-500/15 text-sm font-bold text-cyan-300">
           HS
         </div>
@@ -63,20 +68,14 @@ export function Topbar({
           Montar rede simples
         </button>
 
-        <button
-          type="button"
-          disabled
-          className="hidden rounded-lg border border-slate-800 px-3 py-1.5 text-xs text-slate-600 lg:inline-flex"
-          title="Funcionalidade reservada para versão futura."
-        >
-          Salvar em breve
-        </button>
-
         <ConfirmCalculateButton
           projectState={projectState}
           onConfirmCalculate={onConfirmCalculate}
         />
+        </div>
       </div>
+
+      <QuickComponentSearch onAddComponent={onAddComponent} />
     </header>
   );
 }
