@@ -1,5 +1,4 @@
-﻿import { useState } from "react";
-import type { MouseEvent as ReactMouseEvent, ReactNode } from "react";
+import { useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 
 import type {
   EditorScaleSettings,
@@ -30,26 +29,22 @@ import { ResultsPanel } from "./ResultsPanel";
 import { TankProperties } from "./TankProperties";
 import { ValveProperties } from "./ValveProperties";
 
-type BottomWorkspacePanelProps = {
+export type RightWorkspacePanelProps = {
+  isOpen: boolean;
+  widthPx: number;
   selectedNode: HydroFlowNode | null;
   projectState: ProjectVisualState;
   calculationState: StoredCalculationState;
   scaleSettings: EditorScaleSettings;
   energySettings: ProjectEnergySettings;
+  onToggle: () => void;
+  onResizeStart: (event: ReactMouseEvent<HTMLDivElement>) => void;
   onUpdateScaleSettings: UpdateScaleSettings;
   onUpdateEnergySettings: UpdateProjectEnergySettings;
   onUpdateSelectedNodeData: UpdateSelectedNodeData;
 };
 
 type PanelMode = "simple" | "technical";
-
-const PANEL_MIN_HEIGHT = 88;
-const PANEL_DEFAULT_HEIGHT = 118;
-const PANEL_MAX_HEIGHT = 260;
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
-}
 
 function formatNumber(value: number | null | undefined, decimals = 2): string {
   if (value === null || value === undefined || !Number.isFinite(value)) {
@@ -102,15 +97,9 @@ function getRecommendedPumpLabel(result: HydroCalculationResult | null): string 
   return `${recommendedPump.pump.brand} - ${recommendedPump.pump.model}`;
 }
 
-function CompactMetric({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function CompactMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-[118px] rounded-xl border border-slate-800 bg-slate-950/85 px-3 py-2">
+    <div className="rounded-xl border border-slate-800 bg-slate-950/80 px-3 py-2">
       <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-500">
         {label}
       </p>
@@ -135,30 +124,58 @@ function SimpleResultsView({
     (validation?.errors.length ?? 0) + (result?.errors.length ?? 0);
 
   return (
-    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-8">
-      <CompactMetric label="Status" value={getProjectStateLabel(projectState)} />
-      <CompactMetric
-        label="Vazao"
-        value={result ? `${formatNumber(mainFlowM3h, 2)} m3/h` : "--"}
-      />
-      <CompactMetric
-        label="Perda"
-        value={result ? `${formatNumber(result.totalLocalLossMca, 2)} mca` : "--"}
-      />
-      <CompactMetric
-        label="HMT"
-        value={result ? `${formatNumber(result.totalDynamicHeadMca, 2)} mca` : "--"}
-      />
-      <CompactMetric
-        label="Potencia"
-        value={result ? `${formatNumber(result.electricPowerKw, 3)} kW` : "--"}
-      />
-      <CompactMetric
-        label="Custo"
-        value={result ? formatCurrencyBRL(result.monthlyEnergyCostBRL) : "--"}
-      />
-      <CompactMetric label="Alertas" value={`${errorCount} erro(s) / ${warningCount}`} />
-      <CompactMetric label="Bomba" value={getRecommendedPumpLabel(result)} />
+    <div className="space-y-2">
+      <div className="rounded-2xl border border-cyan-500/25 bg-cyan-500/10 p-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-cyan-300">
+          Resumo simples
+        </p>
+        <p className="mt-1 text-xs leading-5 text-cyan-50/85">
+          Leitura rapida para entender o estado do projeto sem abrir todos os
+          parametros tecnicos.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <CompactMetric label="Status" value={getProjectStateLabel(projectState)} />
+        <CompactMetric
+          label="Vazao"
+          value={result ? `${formatNumber(mainFlowM3h, 2)} m3/h` : "--"}
+        />
+        <CompactMetric
+          label="Perda"
+          value={result ? `${formatNumber(result.totalLocalLossMca, 2)} mca` : "--"}
+        />
+        <CompactMetric
+          label="HMT"
+          value={result ? `${formatNumber(result.totalDynamicHeadMca, 2)} mca` : "--"}
+        />
+        <CompactMetric
+          label="Potencia"
+          value={result ? `${formatNumber(result.electricPowerKw, 3)} kW` : "--"}
+        />
+        <CompactMetric
+          label="Custo"
+          value={result ? formatCurrencyBRL(result.monthlyEnergyCostBRL) : "--"}
+        />
+      </div>
+
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+          Bomba recomendada
+        </p>
+        <p className="mt-1 text-xs font-semibold text-white">
+          {getRecommendedPumpLabel(result)}
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+          Alertas
+        </p>
+        <p className="mt-1 text-xs font-semibold text-white">
+          {errorCount} erro(s) / {warningCount} alerta(s)
+        </p>
+      </div>
     </div>
   );
 }
@@ -171,11 +188,11 @@ function ComponentHelpMini({ node }: { node: HydroFlowNode }) {
   );
 
   return (
-    <section className="rounded-xl border border-cyan-500/25 bg-cyan-500/10 p-3">
+    <section className="rounded-2xl border border-cyan-500/25 bg-cyan-500/10 p-3">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-cyan-300">
-            Ajuda
+            Ajuda rapida
           </p>
           <p className="mt-1 text-xs font-semibold text-white">{guide.title}</p>
         </div>
@@ -211,7 +228,7 @@ function TechnicalPropertiesView({
   onUpdateScaleSettings,
   onUpdateEnergySettings,
   onUpdateSelectedNodeData,
-}: BottomWorkspacePanelProps) {
+}: Omit<RightWorkspacePanelProps, "isOpen" | "widthPx" | "onToggle" | "onResizeStart">) {
   if (!selectedNode) {
     return (
       <ProjectProperties
@@ -292,140 +309,110 @@ function TechnicalPropertiesView({
   );
 }
 
-export function BottomWorkspacePanel(props: BottomWorkspacePanelProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function RightWorkspacePanel(props: RightWorkspacePanelProps) {
   const [mode, setMode] = useState<PanelMode>("simple");
-  const [panelHeightPx, setPanelHeightPx] = useState(PANEL_DEFAULT_HEIGHT);
 
-  const result = props.calculationState.lastResult;
-  const mainFlowM3h = getMainFlowM3h(result);
+  if (!props.isOpen) {
+    return (
+      <aside className="flex min-h-0 flex-col items-center border-l border-slate-800 bg-slate-950/95 px-2 py-3">
+        <button
+          type="button"
+          onClick={props.onToggle}
+          title="Abrir painel de analise"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-500/40 bg-cyan-500/10 text-cyan-200 transition hover:bg-cyan-500/20"
+        >
+          ‹
+        </button>
 
-  function handleResizeStart(event: ReactMouseEvent<HTMLDivElement>) {
-    event.preventDefault();
-
-    const startY = event.clientY;
-    const startHeight = panelHeightPx;
-    document.body.style.cursor = "row-resize";
-    document.body.style.userSelect = "none";
-
-    function handleMouseMove(moveEvent: MouseEvent) {
-      const delta = startY - moveEvent.clientY;
-      setPanelHeightPx(
-        clamp(startHeight + delta, PANEL_MIN_HEIGHT, PANEL_MAX_HEIGHT)
-      );
-    }
-
-    function handleMouseUp() {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    }
-
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+        <div className="mt-4 flex flex-1 items-center justify-center">
+          <span className="rotate-90 whitespace-nowrap text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+            Analise
+          </span>
+        </div>
+      </aside>
+    );
   }
 
   return (
-    <section className="relative shrink-0 border-t border-slate-800 bg-slate-950/98 shadow-2xl shadow-slate-950/60">
+    <aside
+      className="relative min-h-0 overflow-hidden border-l border-slate-800 bg-slate-950/98 shadow-2xl shadow-slate-950/60"
+      style={{ width: props.widthPx }}
+    >
       <div
         role="separator"
-        aria-label="Redimensionar painel inferior"
-        title="Arraste para ajustar a altura do painel"
-        onMouseDown={handleResizeStart}
-        className="absolute left-1/2 top-0 z-20 h-1.5 w-28 -translate-x-1/2 cursor-row-resize rounded-b-full bg-cyan-500/45 transition hover:bg-cyan-300"
+        aria-label="Redimensionar painel de analise"
+        title="Arraste para ajustar a largura do painel"
+        onMouseDown={props.onResizeStart}
+        className="absolute left-0 top-0 z-20 h-full w-1.5 cursor-col-resize bg-transparent transition hover:bg-cyan-400/25"
       />
 
-      <div className="flex min-h-12 flex-wrap items-center justify-between gap-2 px-3 py-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
-            Analise
-          </p>
-          <span className="rounded-full border border-slate-800 bg-slate-950 px-2.5 py-1 text-[11px] font-semibold text-slate-200">
-            {getProjectStateLabel(props.projectState)}
-          </span>
-          {result && (
-            <>
-              <span className="rounded-full border border-slate-800 bg-slate-950 px-2.5 py-1 text-[11px] text-slate-300">
-                Vazao {formatNumber(mainFlowM3h, 2)} m3/h
-              </span>
-              <span className="rounded-full border border-slate-800 bg-slate-950 px-2.5 py-1 text-[11px] text-slate-300">
-                HMT {formatNumber(result.totalDynamicHeadMca, 2)} mca
-              </span>
-              <span className="rounded-full border border-slate-800 bg-slate-950 px-2.5 py-1 text-[11px] text-slate-300">
-                Custo {formatCurrencyBRL(result.monthlyEnergyCostBRL)}
-              </span>
-            </>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {isOpen && (
-            <div className="flex rounded-xl border border-slate-800 bg-slate-900 p-1">
-              <button
-                type="button"
-                onClick={() => setMode("simple")}
-                className={[
-                  "rounded-lg px-3 py-1.5 text-[11px] font-semibold transition",
-                  mode === "simple"
-                    ? "bg-cyan-300 text-cyan-950"
-                    : "text-slate-300 hover:bg-slate-800 hover:text-white",
-                ].join(" ")}
-              >
-                Simples
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("technical")}
-                className={[
-                  "rounded-lg px-3 py-1.5 text-[11px] font-semibold transition",
-                  mode === "technical"
-                    ? "bg-cyan-300 text-cyan-950"
-                    : "text-slate-300 hover:bg-slate-800 hover:text-white",
-                ].join(" ")}
-              >
-                Tecnico
-              </button>
+      <div className="flex h-full min-h-0 flex-col pl-2">
+        <div className="border-b border-slate-800 px-3 py-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
+                Painel de analise
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Resumo limpo. Abra detalhes apenas quando precisar.
+              </p>
             </div>
-          )}
 
-          <button
-            type="button"
-            onClick={() => setIsOpen((current) => !current)}
-            className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-slate-200 transition hover:border-cyan-500/50 hover:text-cyan-100"
-          >
-            {isOpen ? "Recolher" : "Analise"}
-          </button>
+            <button
+              type="button"
+              onClick={props.onToggle}
+              className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-300 transition hover:border-cyan-500/60 hover:text-white"
+              title="Recolher painel"
+            >
+              ›
+            </button>
+          </div>
+
+          <div className="mt-3 flex rounded-xl border border-slate-800 bg-slate-900 p-1">
+            <button
+              type="button"
+              onClick={() => setMode("simple")}
+              className={[
+                "flex-1 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition",
+                mode === "simple"
+                  ? "bg-cyan-300 text-cyan-950"
+                  : "text-slate-300 hover:bg-slate-800 hover:text-white",
+              ].join(" ")}
+            >
+              Simples
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("technical")}
+              className={[
+                "flex-1 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition",
+                mode === "technical"
+                  ? "bg-cyan-300 text-cyan-950"
+                  : "text-slate-300 hover:bg-slate-800 hover:text-white",
+              ].join(" ")}
+            >
+              Tecnico
+            </button>
+          </div>
         </div>
-      </div>
 
-      {isOpen && (
-        <div
-          className="overflow-y-auto border-t border-slate-800 px-3 py-2"
-          style={{ height: panelHeightPx }}
-        >
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
           {mode === "simple" ? (
             <SimpleResultsView
               projectState={props.projectState}
               calculationState={props.calculationState}
             />
           ) : (
-            <div className="grid gap-3 xl:grid-cols-[minmax(300px,0.85fr)_minmax(380px,1.15fr)]">
-              <div className="space-y-3">
-                <TechnicalPropertiesView {...props} />
-              </div>
-
-              <div className="space-y-3">
-                <ResultsPanel
-                  projectState={props.projectState}
-                  calculationState={props.calculationState}
-                />
-              </div>
+            <div className="space-y-4">
+              <TechnicalPropertiesView {...props} />
+              <ResultsPanel
+                projectState={props.projectState}
+                calculationState={props.calculationState}
+              />
             </div>
           )}
         </div>
-      )}
-    </section>
+      </div>
+    </aside>
   );
 }
-

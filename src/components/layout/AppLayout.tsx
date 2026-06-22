@@ -1,4 +1,4 @@
-﻿import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import type { User } from "@supabase/supabase-js";
 import { useEdgesState, useNodesState } from "@xyflow/react";
@@ -7,7 +7,7 @@ import { Topbar } from "./Topbar";
 import { Sidebar } from "./Sidebar";
 import { BottomStatusBar } from "./BottomStatusBar";
 import { HydroSketchCanvas } from "../../editor/HydroSketchCanvas";
-import { BottomWorkspacePanel } from "../panels/BottomWorkspacePanel";
+import { RightWorkspacePanel } from "../panels/RightWorkspacePanel";
 import { MyProjectsModal } from "../cloud/MyProjectsModal";
 
 import type { ComponentCatalogItem } from "../../domain/catalogs/componentCatalog";
@@ -47,6 +47,10 @@ const SIDEBAR_COLLAPSED_WIDTH = 72;
 const SIDEBAR_DEFAULT_WIDTH = 280;
 const SIDEBAR_MIN_WIDTH = 220;
 const SIDEBAR_MAX_WIDTH = 420;
+const RIGHT_PANEL_COLLAPSED_WIDTH = 52;
+const RIGHT_PANEL_DEFAULT_WIDTH = 360;
+const RIGHT_PANEL_MIN_WIDTH = 300;
+const RIGHT_PANEL_MAX_WIDTH = 520;
 
 const CLOUD_PROJECT_FORMAT_VERSION = "1.0";
 
@@ -91,6 +95,8 @@ export function AppLayout() {
   const [addRequest, setAddRequest] = useState<AddComponentRequest | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_WIDTH);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const [rightPanelWidth, setRightPanelWidth] = useState(RIGHT_PANEL_DEFAULT_WIDTH);
   const [nodes, setNodes, onNodesChange] =
     useNodesState<HydroFlowNode>(initialNodes);
 
@@ -170,11 +176,42 @@ export function AppLayout() {
   const leftColumnWidth = isSidebarOpen
     ? sidebarWidth
     : SIDEBAR_COLLAPSED_WIDTH;
+  const rightColumnWidth = isRightPanelOpen
+    ? rightPanelWidth
+    : RIGHT_PANEL_COLLAPSED_WIDTH;
 
   function handleStartSidebarResize(
     event: ReactMouseEvent<HTMLDivElement>
   ) {
     startPanelResize(event, sidebarWidth);
+  }
+
+  function handleStartRightPanelResize(
+    event: ReactMouseEvent<HTMLDivElement>
+  ) {
+    event.preventDefault();
+
+    const startX = event.clientX;
+    const startWidth = rightPanelWidth;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    function handleMouseMove(moveEvent: MouseEvent) {
+      const delta = startX - moveEvent.clientX;
+      setRightPanelWidth(
+        clamp(startWidth + delta, RIGHT_PANEL_MIN_WIDTH, RIGHT_PANEL_MAX_WIDTH)
+      );
+    }
+
+    function handleMouseUp() {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    }
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
   }
 
   function startPanelResize(
@@ -654,7 +691,7 @@ export function AppLayout() {
       <main
         className="grid min-h-0 flex-1 transition-[grid-template-columns] duration-200 ease-in-out"
         style={{
-          gridTemplateColumns: `${leftColumnWidth}px minmax(0,1fr)`,
+          gridTemplateColumns: `${leftColumnWidth}px minmax(0,1fr) ${rightColumnWidth}px`,
         }}
       >
         <Sidebar
@@ -683,18 +720,22 @@ export function AppLayout() {
             scaleSettings={scaleSettings}
             onCreateSimpleNetwork={handleCreateSimpleNetwork}
           />
-
-          <BottomWorkspacePanel
-            selectedNode={selectedNode}
-            projectState={projectState}
-            calculationState={calculationState}
-            scaleSettings={scaleSettings}
-            energySettings={energySettings}
-            onUpdateScaleSettings={updateScaleSettings}
-            onUpdateEnergySettings={updateEnergySettings}
-            onUpdateSelectedNodeData={updateSelectedNodeData}
-          />
         </section>
+
+        <RightWorkspacePanel
+          isOpen={isRightPanelOpen}
+          widthPx={rightPanelWidth}
+          selectedNode={selectedNode}
+          projectState={projectState}
+          calculationState={calculationState}
+          scaleSettings={scaleSettings}
+          energySettings={energySettings}
+          onToggle={() => setIsRightPanelOpen((current) => !current)}
+          onResizeStart={handleStartRightPanelResize}
+          onUpdateScaleSettings={updateScaleSettings}
+          onUpdateEnergySettings={updateEnergySettings}
+          onUpdateSelectedNodeData={updateSelectedNodeData}
+        />
       </main>
 
       <MyProjectsModal
