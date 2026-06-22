@@ -32,6 +32,11 @@ import {
   saveProjectToCloud,
   type CloudProjectRecord,
 } from "../../lib/cloudProjects";
+import {
+  buildLocalProjectFile,
+  downloadHydroSketchProjectFile,
+  readHydroSketchProjectFile,
+} from "../../lib/projectFile";
 import { supabase } from "../../lib/supabaseClient";
 import type { Json } from "../../types/supabase.types";
 
@@ -51,6 +56,11 @@ const CLOUD_PROJECT_FORMAT_VERSION = "1.0";
 
 type CloudSaveState = {
   status: "idle" | "saving" | "success" | "error";
+  message: string | null;
+};
+
+type LocalProjectFileState = {
+  status: "idle" | "success" | "error";
   message: string | null;
 };
 
@@ -113,13 +123,18 @@ export function AppLayout() {
   const [cloudProjects, setCloudProjects] = useState<CloudProjectRecord[]>([]);
   const [isLoadingCloudProjects, setIsLoadingCloudProjects] = useState(false);
   const [cloudProjectsError, setCloudProjectsError] = useState<string | null>(null);
-  const [projectName] = useState("Projeto HidroSketch");
+  const [projectName, setProjectName] = useState("Projeto HidroSketch");
+  const [localProjectFileState, setLocalProjectFileState] =
+    useState<LocalProjectFileState>({
+      status: "idle",
+      message: null,
+    });
 
   const [scaleSettings, setScaleSettings] = useState({
     pixelsPerMeter: 40,
     gridSpacingPx: 20,
     gridEnabled: true,
-    rulerEnabled: true,
+    rulerEnabled: false,
     snapEnabled: true,
   });
 
@@ -265,11 +280,16 @@ export function AppLayout() {
     setSelectedEdgeId(null);
     setCalculationState(EMPTY_RESULT_STORE);
     setProjectState("outdated");
+    setProjectName("Rede simples HidroSketch");
     setCloudProjectId(null);
     setCloudVersionNumber(0);
     setCloudSaveState({
       status: "idle",
       message: null,
+    });
+    setLocalProjectFileState({
+      status: "success",
+      message: "Rede simples criada. Renomeie ou baixe o projeto quando quiser.",
     });
 
     setEnergySettings((current) => ({
@@ -281,6 +301,116 @@ export function AppLayout() {
       operationDaysPerMonth: 30,
       energyTariffBRLKwh: 0.9,
     }));
+  }
+
+
+  function handleRenameProject(name: string) {
+    setProjectName(name);
+    setProjectState((current) =>
+      current === "calculated" ? "outdated" : current
+    );
+  }
+
+  function handleCreateEmptyProject() {
+    const hasCurrentProject = nodes.length > 0 || edges.length > 0;
+
+    if (
+      hasCurrentProject &&
+      !window.confirm(
+        "Criar um novo projeto vazio? As alterações não baixadas podem ser perdidas."
+      )
+    ) {
+      return;
+    }
+
+    setNodes([]);
+    setEdges([]);
+    setSelectedNodeId(null);
+    setSelectedEdgeId(null);
+    setCalculationState(EMPTY_RESULT_STORE);
+    setProjectState("draft");
+    setProjectName("Projeto sem título");
+    setCloudProjectId(null);
+    setCloudVersionNumber(0);
+    setCloudSaveState({
+      status: "idle",
+      message: null,
+    });
+    setLocalProjectFileState({
+      status: "success",
+      message: "Novo projeto criado.",
+    });
+  }
+
+  function handleDownloadLocalProject() {
+    const projectFile = buildLocalProjectFile({
+      projectName,
+      nodes,
+      edges,
+      scaleSettings,
+      energySettings,
+      projectState,
+      calculationState,
+      cloudProjectId,
+    });
+
+    downloadHydroSketchProjectFile(projectFile);
+    setLocalProjectFileState({
+      status: "success",
+      message: "Projeto baixado com sucesso.",
+    });
+  }
+
+  async function handleImportLocalProject(file: File) {
+    try {
+      const importedProject = await readHydroSketchProjectFile(file);
+
+      setNodes(importedProject.nodes);
+      setEdges(importedProject.edges);
+      setSelectedNodeId(null);
+      setSelectedEdgeId(null);
+      setProjectName(importedProject.name);
+
+      if (importedProject.scaleSettings) {
+        setScaleSettings((current) => ({
+          ...current,
+          ...importedProject.scaleSettings,
+        }));
+      }
+
+      if (importedProject.energySettings) {
+        setEnergySettings((current) => ({
+          ...current,
+          ...importedProject.energySettings,
+        }));
+      }
+
+      setCalculationState(importedProject.calculationState);
+      setProjectState(
+        importedProject.projectState === "calculated" ? "outdated" : importedProject.projectState
+      );
+      setCloudProjectId(null);
+      setCloudVersionNumber(0);
+      setCloudSaveState({
+        status: "idle",
+        message: null,
+      });
+      setLocalProjectFileState({
+        status: "success",
+        message:
+          importedProject.sourceCloudProjectId === null
+            ? "Projeto carregado com sucesso."
+            : "Projeto carregado com sucesso. Salve na nuvem para vincular à sua conta atual.",
+      });
+    } catch (error) {
+      setLocalProjectFileState({
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Arquivo inválido ou incompatível.",
+      });
+    }
   }
 
   async function handleSaveCloudProject() {
@@ -470,11 +600,16 @@ export function AppLayout() {
       setProjectState("outdated");
     }
 
+    setProjectName(project.name || "Projeto sem título");
     setCloudProjectId(project.id);
     setCloudVersionNumber(0);
     setCloudSaveState({
       status: "success",
       message: `Projeto “${project.name || "sem título"}” aberto da nuvem.`,
+    });
+    setLocalProjectFileState({
+      status: "idle",
+      message: null,
     });
     setIsMyProjectsOpen(false);
   }
@@ -523,7 +658,14 @@ export function AppLayout() {
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-slate-950 text-slate-100">
       <Topbar
+        projectName={projectName}
         projectState={projectState}
+        onProjectNameChange={handleRenameProject}
+        onCreateEmptyProject={handleCreateEmptyProject}
+        onDownloadLocalProject={handleDownloadLocalProject}
+        onImportLocalProject={handleImportLocalProject}
+        localProjectFileStatus={localProjectFileState.status}
+        localProjectFileMessage={localProjectFileState.message}
         onConfirmCalculate={handleConfirmCalculate}
         onCreateSimpleNetwork={handleCreateSimpleNetwork}
         onAddComponent={handleAddComponent}

@@ -59,7 +59,7 @@ export function createDefaultProject(): HydroSketchProject {
         pixelsPerMeter: 40,
         gridSpacingPx: 20,
         gridEnabled: true,
-        rulerEnabled: true,
+        rulerEnabled: false,
         snapEnabled: true,
       },
 
