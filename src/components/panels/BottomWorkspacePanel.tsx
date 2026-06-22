@@ -428,3 +428,4 @@ export function BottomWorkspacePanel(props: BottomWorkspacePanelProps) {
     </section>
   );
 }
+
