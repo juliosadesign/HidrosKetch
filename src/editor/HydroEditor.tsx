@@ -1,4 +1,4 @@
-import {
+﻿import {
     useCallback,
     useEffect,
     useMemo,
@@ -284,7 +284,7 @@ import {
         },
         data: {
           ...nodeToClone.data,
-          label: `${nodeToClone.data.label} (cópia)`,
+          label: `${nodeToClone.data.label} (copia)`,
           defaultData: {
             ...nodeToClone.data.defaultData,
           },
@@ -380,6 +380,8 @@ import {
                 nodeBorderRadius={8}
                 className="!right-4 !bottom-4 overflow-hidden rounded-2xl border border-cyan-500/30 bg-slate-950/95 shadow-2xl shadow-slate-950/50"
                 style={{
+                  width: 180,
+                  height: 105,
                   background: "rgba(2, 6, 23, 0.96)",
                 }}
               />
@@ -417,12 +419,12 @@ import {
           </p>
 
           <p className="mt-2 text-sm text-slate-300">
-            Nós adicionados:{" "}
+            Nos adicionados:{" "}
             <span className="font-semibold text-white">{nodes.length}</span>
           </p>
 
           <p className="mt-1 text-sm text-slate-300">
-            Conexões:{" "}
+            Conexoes:{" "}
             <span className="font-semibold text-white">{edges.length}</span>
           </p>
 
@@ -468,7 +470,7 @@ import {
             className="rounded-xl border border-emerald-500/40 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-40"
             title={
               selectedNodeId
-                ? "Duplica o componente selecionado sem copiar conexões."
+                ? "Duplica o componente selecionado sem copiar conexoes."
                 : "Selecione um componente para clonar."
             }
           >
@@ -481,7 +483,7 @@ import {
             disabled={!selectedEdgeId}
             className="rounded-xl border border-cyan-500/40 px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-500/10 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Deletar conexão
+            Deletar conexao
           </button>
 
           <div className="text-xs text-slate-400">
@@ -496,7 +498,7 @@ import {
 
             {selectedEdge && (
               <>
-                Conexão selecionada:{" "}
+                Conexao selecionada:{" "}
                 <span className="font-semibold text-slate-100">
                   {selectedEdge.data?.label ?? selectedEdge.id}
                 </span>

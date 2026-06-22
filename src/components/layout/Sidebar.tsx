@@ -1,4 +1,4 @@
-import { useMemo, useState, type MouseEvent as ReactMouseEvent } from "react";
+﻿import { useMemo, useState, type MouseEvent as ReactMouseEvent } from "react";
 
 import { COMPONENT_CATALOG } from "../../domain/catalogs/componentCatalog";
 import type { ComponentCatalogItem } from "../../domain/catalogs/componentCatalog";
@@ -25,57 +25,57 @@ const TOOL_CATEGORIES: ToolCategory[] = [
     id: "all",
     label: "Todos",
     compactLabel: "Todos",
-    icon: "✦",
+    icon: "+",
     aliases: ["todos"],
   },
   {
     id: "sources",
-    label: "Fontes e reservatórios",
+    label: "Fontes e reservatorios",
     compactLabel: "Fontes",
-    icon: "◒",
-    aliases: ["fontes e reservatorios", "fontes e reservação", "reservatorio"],
+    icon: "F",
+    aliases: ["fontes e reservatorios", "fontes e reservacao", "reservatorio"],
   },
   {
     id: "pipes",
-    label: "Tubulação",
+    label: "Tubulacao",
     compactLabel: "Tubos",
-    icon: "═",
-    aliases: ["tubulacao", "tubulação"],
+    icon: "P",
+    aliases: ["tubulacao", "tubulacao"],
   },
   {
     id: "accessories",
-    label: "Acessórios com K",
+    label: "Acessorios com K",
     compactLabel: "K",
-    icon: "⌁",
-    aliases: ["acessorios com k", "acessórios com k"],
+    icon: "K",
+    aliases: ["acessorios com k", "acessorios com k"],
   },
   {
     id: "valves",
-    label: "Válvulas",
-    compactLabel: "Válvulas",
-    icon: "◇",
-    aliases: ["valvulas", "válvulas"],
+    label: "Valvulas",
+    compactLabel: "Valvulas",
+    icon: "V",
+    aliases: ["valvulas", "valvulas"],
   },
   {
     id: "pumps",
     label: "Bombas",
     compactLabel: "Bombas",
-    icon: "↻",
+    icon: "B",
     aliases: ["bombas"],
   },
   {
     id: "instruments",
     label: "Instrumentos",
     compactLabel: "Medir",
-    icon: "⌖",
+    icon: "M",
     aliases: ["instrumentos"],
   },
   {
     id: "notes",
-    label: "Anotações",
+    label: "Anotacoes",
     compactLabel: "Notas",
     icon: "T",
-    aliases: ["anotacoes", "anotações"],
+    aliases: ["anotacoes", "anotacoes"],
   },
 ];
 
@@ -99,12 +99,12 @@ function normalizeText(value: string) {
 
 function getKindLabel(item: ComponentCatalogItem) {
   if (item.kind === "reservoir" || item.kind === "tank") return "Fonte";
-  if (item.kind === "pipe" || item.kind === "junction") return "Tubulação";
-  if (item.kind === "accessory") return "Acessório K";
-  if (item.kind === "valve") return "Válvula";
+  if (item.kind === "pipe" || item.kind === "junction") return "Tubulacao";
+  if (item.kind === "accessory") return "Acessorio K";
+  if (item.kind === "valve") return "Valvula";
   if (item.kind === "pump") return "Bomba";
   if (item.kind === "instrument") return "Instrumento";
-  if (item.kind === "label") return "Anotação";
+  if (item.kind === "label") return "Anotacao";
 
   return item.category;
 }
@@ -128,17 +128,17 @@ function getCategoryForItem(item: ComponentCatalogItem) {
 }
 
 function getToolIcon(item: ComponentCatalogItem) {
-  if (item.kind === "reservoir") return "◒";
-  if (item.kind === "tank") return "▣";
-  if (item.kind === "pipe") return "═";
-  if (item.kind === "junction") return "●";
-  if (item.kind === "accessory") return "⌁";
-  if (item.kind === "valve") return "◇";
-  if (item.kind === "pump") return "↻";
-  if (item.kind === "instrument") return "⌖";
+  if (item.kind === "reservoir") return "F";
+  if (item.kind === "tank") return "T";
+  if (item.kind === "pipe") return "P";
+  if (item.kind === "junction") return "N";
+  if (item.kind === "accessory") return "K";
+  if (item.kind === "valve") return "V";
+  if (item.kind === "pump") return "B";
+  if (item.kind === "instrument") return "M";
   if (item.kind === "label") return "T";
 
-  return "□";
+  return "";
 }
 
 function getShortText(text: string, maxLength = 68) {
@@ -247,14 +247,14 @@ export function Sidebar({
 
   if (isCollapsed) {
     return (
-      <aside className="relative z-30 flex min-h-0 flex-col items-center overflow-visible border-r border-slate-800 bg-slate-950 px-2 py-4">
+      <aside className="relative z-[90] flex min-h-0 flex-col items-center overflow-visible border-r border-slate-800 bg-slate-950 px-2 py-4">
         <button
           type="button"
           onClick={onToggle}
           title="Expandir biblioteca de componentes"
           className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-500/40 bg-cyan-500/10 text-cyan-200 transition hover:bg-cyan-500/20"
         >
-          ☰
+          
         </button>
 
         <div className="mt-5 flex flex-1 flex-col items-center gap-3 overflow-visible">
@@ -286,13 +286,13 @@ export function Sidebar({
                 </button>
 
                 {!isActive && (
-                  <div className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 hidden -translate-y-1/2 whitespace-nowrap rounded-xl border border-cyan-500/25 bg-slate-950/95 px-3 py-2 text-xs font-semibold text-cyan-100 shadow-2xl shadow-slate-950/60 backdrop-blur group-hover:block">
+                  <div className="pointer-events-none absolute left-full top-1/2 z-[120] ml-3 hidden -translate-y-1/2 whitespace-nowrap rounded-xl border border-cyan-500/25 bg-slate-950/95 px-3 py-2 text-xs font-semibold text-cyan-100 shadow-2xl shadow-slate-950/60 backdrop-blur group-hover:block">
                     {category.label}
                   </div>
                 )}
 
                 {isActive && (
-                  <div className="absolute left-full top-0 z-50 ml-3 w-64 overflow-hidden rounded-2xl border border-cyan-500/30 bg-slate-950/98 shadow-2xl shadow-slate-950/70 backdrop-blur">
+                  <div className="absolute left-full top-0 z-[120] ml-3 w-64 overflow-hidden rounded-2xl border border-cyan-500/30 bg-slate-950/98 shadow-2xl shadow-slate-950/70 backdrop-blur">
                     <div className="flex items-center justify-between gap-3 border-b border-slate-800 bg-slate-900/80 px-3 py-2">
                       <div className="min-w-0">
                         <p className="truncate text-xs font-semibold text-cyan-100">
@@ -308,11 +308,11 @@ export function Sidebar({
                         aria-label="Fechar grupo de ferramentas"
                         className="rounded-lg border border-slate-700 px-2 py-1 text-[10px] text-slate-300 transition hover:border-cyan-500/50 hover:text-cyan-100"
                       >
-                        ×
+                        x
                       </button>
                     </div>
 
-                    <div className="max-h-[420px] overflow-y-auto py-1">
+                    <div className="max-h-72 overflow-y-auto py-1">
                       {categoryComponents.map((item) => (
                         <button
                           key={item.id}
@@ -377,7 +377,7 @@ export function Sidebar({
             title="Recolher biblioteca de componentes"
             className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-300 transition hover:border-cyan-500/60 hover:bg-slate-800 hover:text-white"
           >
-            ⟨
+            
           </button>
         </div>
 
@@ -482,7 +482,7 @@ export function Sidebar({
                       className="text-[11px] font-semibold text-slate-400 transition hover:text-cyan-200"
                       aria-expanded={isExpanded}
                     >
-                      {isExpanded ? "Ocultar descrição" : "Ver descrição"}
+                      {isExpanded ? "Ocultar descricao" : "Ver descricao"}
                     </button>
 
                     <span className="text-[10px] text-slate-600">
@@ -493,7 +493,7 @@ export function Sidebar({
                   {isExpanded && (
                     <div className="space-y-2 border-t border-slate-800 bg-slate-950/70 p-3 text-[11px] leading-5 text-slate-400">
                       <p>
-                        <strong className="text-cyan-300">Descrição:</strong>{" "}
+                        <strong className="text-cyan-300">Descricao:</strong>{" "}
                         {item.description}
                       </p>
                       <p>
@@ -501,7 +501,7 @@ export function Sidebar({
                         {guide.whenToUse}
                       </p>
                       <p>
-                        <strong className="text-slate-200">Atenção:</strong>{" "}
+                        <strong className="text-slate-200">Atencao:</strong>{" "}
                         {guide.technicalNote}
                       </p>
                     </div>
@@ -513,7 +513,7 @@ export function Sidebar({
         ) : (
           <div className="rounded-2xl border border-yellow-500/25 bg-yellow-500/10 p-4 text-xs leading-5 text-yellow-100/90">
             Nenhum componente encontrado. Tente pesquisar por cano, bomba,
-            joelho, válvula, reservatório ou medidor.
+            joelho, valvula, reservatorio ou medidor.
           </div>
         )}
       </div>

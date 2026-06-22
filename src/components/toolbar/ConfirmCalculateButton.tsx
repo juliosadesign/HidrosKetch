@@ -1,4 +1,4 @@
-import type { ProjectVisualState } from "../../editor/editor.types";
+﻿import type { ProjectVisualState } from "../../editor/editor.types";
 
 type ConfirmCalculateButtonProps = {
   projectState: ProjectVisualState;
@@ -28,11 +28,7 @@ export function ConfirmCalculateButton({
         .filter(Boolean)
         .join(" ")}
     >
-      {isCalculated
-        ? "Recalcular"
-        : isOutdated
-          ? "Recalcular alterações"
-          : "Confirmar e recalcular"}
+      Recalcular
     </button>
   );
 }

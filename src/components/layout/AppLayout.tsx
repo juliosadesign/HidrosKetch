@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+﻿import { useMemo, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import type { User } from "@supabase/supabase-js";
 import { useEdgesState, useNodesState } from "@xyflow/react";
@@ -7,7 +7,7 @@ import { Topbar } from "./Topbar";
 import { Sidebar } from "./Sidebar";
 import { BottomStatusBar } from "./BottomStatusBar";
 import { HydroSketchCanvas } from "../../editor/HydroSketchCanvas";
-import { PropertiesPanel } from "../panels/PropertiesPanel";
+import { BottomWorkspacePanel } from "../panels/BottomWorkspacePanel";
 import { MyProjectsModal } from "../cloud/MyProjectsModal";
 
 import type { ComponentCatalogItem } from "../../domain/catalogs/componentCatalog";
@@ -48,10 +48,6 @@ const SIDEBAR_DEFAULT_WIDTH = 280;
 const SIDEBAR_MIN_WIDTH = 220;
 const SIDEBAR_MAX_WIDTH = 420;
 
-const PROPERTIES_COLLAPSED_WIDTH = 52;
-const PROPERTIES_DEFAULT_WIDTH = 340;
-const PROPERTIES_MIN_WIDTH = 300;
-const PROPERTIES_MAX_WIDTH = 520;
 const CLOUD_PROJECT_FORMAT_VERSION = "1.0";
 
 type CloudSaveState = {
@@ -93,13 +89,8 @@ export function AppLayout() {
   const requestCounterRef = useRef(0);
 
   const [addRequest, setAddRequest] = useState<AddComponentRequest | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_WIDTH);
-  const [propertiesPanelWidth, setPropertiesPanelWidth] = useState(
-    PROPERTIES_DEFAULT_WIDTH
-  );
-
   const [nodes, setNodes, onNodesChange] =
     useNodesState<HydroFlowNode>(initialNodes);
 
@@ -180,24 +171,13 @@ export function AppLayout() {
     ? sidebarWidth
     : SIDEBAR_COLLAPSED_WIDTH;
 
-  const rightColumnWidth = isPropertiesPanelOpen
-    ? propertiesPanelWidth
-    : PROPERTIES_COLLAPSED_WIDTH;
-
   function handleStartSidebarResize(
     event: ReactMouseEvent<HTMLDivElement>
   ) {
-    startPanelResize("left", event, sidebarWidth);
-  }
-
-  function handleStartPropertiesResize(
-    event: ReactMouseEvent<HTMLDivElement>
-  ) {
-    startPanelResize("right", event, propertiesPanelWidth);
+    startPanelResize(event, sidebarWidth);
   }
 
   function startPanelResize(
-    side: "left" | "right",
     event: ReactMouseEvent<HTMLDivElement>,
     startWidth: number
   ) {
@@ -210,15 +190,8 @@ export function AppLayout() {
     function handleMouseMove(moveEvent: MouseEvent) {
       const delta = moveEvent.clientX - startX;
 
-      if (side === "left") {
-        setSidebarWidth(
-          clamp(startWidth + delta, SIDEBAR_MIN_WIDTH, SIDEBAR_MAX_WIDTH)
-        );
-        return;
-      }
-
-      setPropertiesPanelWidth(
-        clamp(startWidth - delta, PROPERTIES_MIN_WIDTH, PROPERTIES_MAX_WIDTH)
+      setSidebarWidth(
+        clamp(startWidth + delta, SIDEBAR_MIN_WIDTH, SIDEBAR_MAX_WIDTH)
       );
     }
 
@@ -317,7 +290,7 @@ export function AppLayout() {
     if (
       hasCurrentProject &&
       !window.confirm(
-        "Criar um novo projeto vazio? As alterações não baixadas podem ser perdidas."
+        "Criar um novo projeto vazio? As alteracoes nao baixadas podem ser perdidas."
       )
     ) {
       return;
@@ -329,7 +302,7 @@ export function AppLayout() {
     setSelectedEdgeId(null);
     setCalculationState(EMPTY_RESULT_STORE);
     setProjectState("draft");
-    setProjectName("Projeto sem título");
+    setProjectName("Projeto sem titulo");
     setCloudProjectId(null);
     setCloudVersionNumber(0);
     setCloudSaveState({
@@ -400,7 +373,7 @@ export function AppLayout() {
         message:
           importedProject.sourceCloudProjectId === null
             ? "Projeto carregado com sucesso."
-            : "Projeto carregado com sucesso. Salve na nuvem para vincular à sua conta atual.",
+            : "Projeto carregado com sucesso. Salve na nuvem para vincular a sua conta atual.",
       });
     } catch (error) {
       setLocalProjectFileState({
@@ -408,7 +381,7 @@ export function AppLayout() {
         message:
           error instanceof Error
             ? error.message
-            : "Arquivo inválido ou incompatível.",
+            : "Arquivo invalido ou incompativel.",
       });
     }
   }
@@ -471,7 +444,7 @@ export function AppLayout() {
       projectId: cloudProjectId,
       name: projectName,
       description:
-        "Projeto salvo pelo HidroSketch com componentes, conexões e configurações técnicas.",
+        "Projeto salvo pelo HidroSketch com componentes, conexoes e configuracoes tecnicas.",
       projectJson,
       versionNumber: cloudVersionNumber + 1,
     });
@@ -534,7 +507,7 @@ export function AppLayout() {
 
     if (!isRecord(projectJson) || !isRecord(projectJson.editor)) {
       setCloudProjectsError(
-        "Este projeto não possui dados válidos para abrir no editor."
+        "Este projeto nao possui dados validos para abrir no editor."
       );
       return;
     }
@@ -543,7 +516,7 @@ export function AppLayout() {
 
     if (!Array.isArray(editor.nodes) || !Array.isArray(editor.edges)) {
       setCloudProjectsError(
-        "Este projeto não contém componentes e conexões em formato válido."
+        "Este projeto nao contem componentes e conexoes em formato valido."
       );
       return;
     }
@@ -600,12 +573,12 @@ export function AppLayout() {
       setProjectState("outdated");
     }
 
-    setProjectName(project.name || "Projeto sem título");
+    setProjectName(project.name || "Projeto sem titulo");
     setCloudProjectId(project.id);
     setCloudVersionNumber(0);
     setCloudSaveState({
       status: "success",
-      message: `Projeto “${project.name || "sem título"}” aberto da nuvem.`,
+      message: `Projeto "${project.name || "sem titulo"}" aberto da nuvem.`,
     });
     setLocalProjectFileState({
       status: "idle",
@@ -681,7 +654,7 @@ export function AppLayout() {
       <main
         className="grid min-h-0 flex-1 transition-[grid-template-columns] duration-200 ease-in-out"
         style={{
-          gridTemplateColumns: `${leftColumnWidth}px minmax(0,1fr) ${rightColumnWidth}px`,
+          gridTemplateColumns: `${leftColumnWidth}px minmax(0,1fr)`,
         }}
       >
         <Sidebar
@@ -692,38 +665,36 @@ export function AppLayout() {
           widthPx={sidebarWidth}
         />
 
-        <HydroSketchCanvas
-          addRequest={addRequest}
-          nodes={nodes}
-          edges={edges}
-          setNodes={setNodes}
-          setEdges={setEdges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          selectedNodeId={selectedNodeId}
-          selectedEdgeId={selectedEdgeId}
-          setSelectedNodeId={setSelectedNodeId}
-          setSelectedEdgeId={setSelectedEdgeId}
-          projectState={projectState}
-          setProjectState={setProjectState}
-          scaleSettings={scaleSettings}
-          onCreateSimpleNetwork={handleCreateSimpleNetwork}
-        />
+        <section className="flex min-h-0 flex-col">
+          <HydroSketchCanvas
+            addRequest={addRequest}
+            nodes={nodes}
+            edges={edges}
+            setNodes={setNodes}
+            setEdges={setEdges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            selectedNodeId={selectedNodeId}
+            selectedEdgeId={selectedEdgeId}
+            setSelectedNodeId={setSelectedNodeId}
+            setSelectedEdgeId={setSelectedEdgeId}
+            projectState={projectState}
+            setProjectState={setProjectState}
+            scaleSettings={scaleSettings}
+            onCreateSimpleNetwork={handleCreateSimpleNetwork}
+          />
 
-        <PropertiesPanel
-          selectedNode={selectedNode}
-          projectState={projectState}
-          calculationState={calculationState}
-          scaleSettings={scaleSettings}
-          energySettings={energySettings}
-          onUpdateScaleSettings={updateScaleSettings}
-          onUpdateEnergySettings={updateEnergySettings}
-          isCollapsed={!isPropertiesPanelOpen}
-          onToggle={() => setIsPropertiesPanelOpen((current) => !current)}
-          onResizeStart={handleStartPropertiesResize}
-          widthPx={propertiesPanelWidth}
-          onUpdateSelectedNodeData={updateSelectedNodeData}
-        />
+          <BottomWorkspacePanel
+            selectedNode={selectedNode}
+            projectState={projectState}
+            calculationState={calculationState}
+            scaleSettings={scaleSettings}
+            energySettings={energySettings}
+            onUpdateScaleSettings={updateScaleSettings}
+            onUpdateEnergySettings={updateEnergySettings}
+            onUpdateSelectedNodeData={updateSelectedNodeData}
+          />
+        </section>
       </main>
 
       <MyProjectsModal

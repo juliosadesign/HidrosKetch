@@ -125,7 +125,7 @@ export function HydroSketchCanvas(props: HydroSketchCanvasProps) {
   const hasComponents = props.nodes.length > 0;
 
   return (
-    <section className="relative min-h-0 overflow-hidden bg-slate-950">
+    <section className="relative min-h-0 flex-1 overflow-hidden bg-slate-950">
       <HydroEditor {...props} />
 
       {!hasComponents && (
