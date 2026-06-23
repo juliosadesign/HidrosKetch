@@ -65,7 +65,7 @@ export function openTechnicalReportPdfPrint({
   const reportWindow = window.open(
     "",
     "_blank",
-    "noopener,noreferrer,width=960,height=720",
+    "width=960,height=720",
   );
 
   if (!reportWindow) {
