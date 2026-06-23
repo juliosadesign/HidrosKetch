@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+﻿import { useMemo, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import type { User } from "@supabase/supabase-js";
 import { useEdgesState, useNodesState } from "@xyflow/react";
@@ -27,6 +27,7 @@ import {
 
 import { buildCalculationResultFromEditor } from "../../engine/reports/buildCalculationResult";
 import { createSimpleHydraulicNetworkTemplate } from "../../editor/templates/simpleNetworkTemplate";
+import { createCompleteHydraulicNetworkTemplate } from "../../editor/templates/completeNetworkTemplate";
 import {
   listUserCloudProjects,
   saveProjectToCloud,
@@ -95,7 +96,7 @@ export function AppLayout() {
   const [addRequest, setAddRequest] = useState<AddComponentRequest | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_WIDTH);
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
   const [rightPanelWidth, setRightPanelWidth] = useState(RIGHT_PANEL_DEFAULT_WIDTH);
   const [nodes, setNodes, onNodesChange] =
     useNodesState<HydroFlowNode>(initialNodes);
@@ -313,6 +314,49 @@ export function AppLayout() {
     }));
   }
 
+
+  function handleCreateCompleteNetwork() {
+    const hasCurrentProject = nodes.length > 0 || edges.length > 0;
+
+    if (
+      hasCurrentProject &&
+      !window.confirm(
+        "Montar a rede completa demonstrativa? A rede atual sera substituida."
+      )
+    ) {
+      return;
+    }
+
+    const template = createCompleteHydraulicNetworkTemplate();
+
+    setNodes(template.nodes);
+    setEdges(template.edges);
+    setSelectedNodeId(null);
+    setSelectedEdgeId(null);
+    setCalculationState(EMPTY_RESULT_STORE);
+    setProjectState("outdated");
+    setProjectName("Rede demonstrativa completa");
+    setCloudProjectId(null);
+    setCloudVersionNumber(0);
+    setCloudSaveState({
+      status: "idle",
+      message: null,
+    });
+    setLocalProjectFileState({
+      status: "success",
+      message: "Rede completa criada. Recalcule para atualizar os resultados.",
+    });
+
+    setEnergySettings((current) => ({
+      ...current,
+      originElevationM: 0,
+      destinationElevationM: 12,
+      requiredOutletPressureKpa: 50,
+      operationHoursPerDay: 4,
+      operationDaysPerMonth: 30,
+      energyTariffBRLKwh: 0.9,
+    }));
+  }
 
   function handleRenameProject(name: string) {
     setProjectName(name);
@@ -678,14 +722,15 @@ export function AppLayout() {
         localProjectFileMessage={localProjectFileState.message}
         onConfirmCalculate={handleConfirmCalculate}
         onCreateSimpleNetwork={handleCreateSimpleNetwork}
+        onCreateCompleteNetwork={handleCreateCompleteNetwork}
         onAddComponent={handleAddComponent}
-        onSaveCloudProject={handleSaveCloudProject}
-        onOpenMyProjects={handleOpenMyProjects}
+        onSaveCloudProject={handleSaveCloudProject}        onOpenTechnicalReport={handleOpenTechnicalReport}
+        onExportCsv={handleExportCsv}
+        onExportPdf={handleExportPdf}
         onAuthUserChange={setAuthUser}
         cloudSaveStatus={cloudSaveState.status}
         cloudSaveMessage={cloudSaveState.message}
-        isCloudUserLoggedIn={Boolean(authUser)}
-        validationErrorCount={validationErrorCount}
+        isCloudUserLoggedIn={Boolean(authUser)}        hasCalculationResult={Boolean(calculationState.lastResult)}
       />
 
       <main
@@ -755,3 +800,5 @@ export function AppLayout() {
     </div>
   );
 }
+
+

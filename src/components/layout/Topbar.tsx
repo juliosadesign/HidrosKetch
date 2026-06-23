@@ -22,15 +22,32 @@ type TopbarProps = {
   localProjectFileMessage: string | null;
   onConfirmCalculate: () => void;
   onCreateSimpleNetwork: () => void;
+  onCreateCompleteNetwork: () => void;
   onAddComponent: (component: ComponentCatalogItem) => void;
   onSaveCloudProject: () => void;
   onOpenMyProjects: () => void;
+  onOpenTechnicalReport: () => void;
+  onExportCsv: () => void;
+  onExportPdf: () => void;
   onAuthUserChange: (user: User | null) => void;
   cloudSaveStatus: CloudSaveStatus;
   cloudSaveMessage: string | null;
   isCloudUserLoggedIn: boolean;
   validationErrorCount: number;
+  hasCalculationResult: boolean;
 };
+
+const neutralButtonClass =
+  "rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 transition hover:border-cyan-400/50 hover:text-cyan-100";
+
+const cyanButtonClass =
+  "rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-cyan-100 transition hover:bg-cyan-500/20";
+
+const greenButtonClass =
+  "rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-100 transition hover:bg-emerald-500/20";
+
+const disabledButtonClass =
+  "disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500";
 
 function getStatusLabel(projectState: ProjectVisualState) {
   if (projectState === "calculated") return "Calculado";
@@ -72,6 +89,42 @@ function getLocalFileMessageClass(status: LocalProjectFileStatus) {
   return "border-slate-700 bg-slate-900 text-slate-300";
 }
 
+function TopbarButton({
+  label,
+  title,
+  onClick,
+  disabled = false,
+  variant = "cyan",
+}: {
+  label: string;
+  title: string;
+  onClick: () => void;
+  disabled?: boolean;
+  variant?: "neutral" | "cyan" | "green" | "violet" | "amber";
+}) {
+  const variantClass = {
+    neutral: neutralButtonClass,
+    cyan: cyanButtonClass,
+    green: greenButtonClass,
+    violet:
+      "rounded-lg border border-violet-500/40 bg-violet-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-violet-100 transition hover:bg-violet-500/20",
+    amber:
+      "rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-amber-100 transition hover:bg-amber-500/20",
+  }[variant];
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`${variantClass} ${disabledButtonClass}`}
+      title={title}
+    >
+      {label}
+    </button>
+  );
+}
+
 export function Topbar({
   projectName,
   projectState,
@@ -83,14 +136,19 @@ export function Topbar({
   localProjectFileMessage,
   onConfirmCalculate,
   onCreateSimpleNetwork,
+  onCreateCompleteNetwork,
   onAddComponent,
   onSaveCloudProject,
   onOpenMyProjects,
+  onOpenTechnicalReport,
+  onExportCsv,
+  onExportPdf,
   onAuthUserChange,
   cloudSaveStatus,
   cloudSaveMessage,
   isCloudUserLoggedIn,
   validationErrorCount,
+  hasCalculationResult,
 }: TopbarProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const isSavingCloud = cloudSaveStatus === "saving";
@@ -112,8 +170,8 @@ export function Topbar({
 
   return (
     <header className="border-b border-slate-800 bg-slate-900/95">
-      <div className="flex min-h-14 items-center gap-3 px-3 py-2">
-        <div className="flex min-w-[170px] shrink-0 items-center gap-2">
+      <div className="flex min-h-14 items-center gap-2 px-3 py-2">
+        <div className="flex min-w-[155px] shrink-0 items-center gap-2">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-500/15 text-xs font-bold text-cyan-300">
             HS
           </div>
@@ -128,7 +186,7 @@ export function Topbar({
           </div>
         </div>
 
-        <label className="hidden min-w-[190px] max-w-xs items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-300 lg:flex">
+        <label className="hidden min-w-[180px] max-w-[250px] items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-300 lg:flex">
           <span className="shrink-0 font-semibold text-cyan-200">Projeto</span>
           <input
             value={projectName}
@@ -139,13 +197,16 @@ export function Topbar({
           />
         </label>
 
-        <div className="min-w-[260px] flex-1">
+        <div className="min-w-[220px] flex-1">
           <QuickComponentSearch compact onAddComponent={onAddComponent} />
         </div>
 
         <div className="flex shrink-0 items-center gap-2 overflow-x-auto pb-1">
           <span className="hidden whitespace-nowrap rounded-full border border-slate-700 px-2.5 py-1 text-[11px] text-slate-300 xl:inline-flex">
-            Status: <strong className={getStatusClass(projectState)}>{getStatusLabel(projectState)}</strong>
+            Status:
+            <strong className={`ml-1 ${getStatusClass(projectState)}`}>
+              {getStatusLabel(projectState)}
+            </strong>
           </span>
 
           {validationErrorCount > 0 && (
@@ -160,69 +221,100 @@ export function Topbar({
 
           <UserMenu onUserChange={onAuthUserChange} />
 
-          <button
-            type="button"
+          <TopbarButton
+            label="Novo"
+            variant="neutral"
             onClick={onCreateEmptyProject}
-            className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 transition hover:border-cyan-400/50 hover:text-cyan-100"
             title="Cria um projeto vazio para comecar do zero."
-          >
-            Novo
-          </button>
+          />
 
-          <button
-            type="button"
+          <TopbarButton
+            label="Abrir"
+            variant="neutral"
             onClick={handleSelectLocalFile}
-            className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 transition hover:border-cyan-400/50 hover:text-cyan-100"
             title="Abre um arquivo .hidrosketch.json salvo no computador."
-          >
-            Abrir
-          </button>
+          />
 
-          <button
-            type="button"
+          <TopbarButton
+            label="Baixar"
+            variant="cyan"
             onClick={onDownloadLocalProject}
-            className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
             title="Baixa o projeto atual como arquivo local .hidrosketch.json."
-          >
-            Baixar
-          </button>
+          />
 
-          <button
-            type="button"
+          <TopbarButton
+            label="Arquivos"
+            variant="cyan"
             onClick={onOpenMyProjects}
             disabled={!isCloudUserLoggedIn}
-            className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-cyan-100 transition hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500"
             title={
               isCloudUserLoggedIn
                 ? "Abre seus arquivos e projetos salvos na nuvem."
                 : "Entre na sua conta para acessar seus projetos salvos."
             }
-          >
-            Arquivos
-          </button>
+          />
 
-          <button
-            type="button"
+          <TopbarButton
+            label={isSavingCloud ? "Salvando..." : "Nuvem"}
+            variant="green"
             onClick={onSaveCloudProject}
             disabled={!canSaveCloud}
-            className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-100 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500"
             title={
               isCloudUserLoggedIn
                 ? "Salva o projeto atual na sua conta Supabase."
                 : "Entre na sua conta para salvar projetos na nuvem."
             }
-          >
-            {isSavingCloud ? "Salvando..." : "Nuvem"}
-          </button>
+          />
 
-          <button
-            type="button"
+          <TopbarButton
+            label="Rede"
+            variant="cyan"
             onClick={onCreateSimpleNetwork}
-            className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-cyan-200 transition hover:bg-cyan-500/20"
-            title="Monta automaticamente um exemplo didatico."
-          >
-            Rede
-          </button>
+            title="Monta automaticamente um exemplo didatico simples."
+          />
+
+          <TopbarButton
+            label="Rede+"
+            variant="cyan"
+            onClick={onCreateCompleteNetwork}
+            title="Monta uma rede demonstrativa maior, com ramais e instrumentos."
+          />
+
+          <TopbarButton
+            label="Relatorio"
+            variant="violet"
+            onClick={onOpenTechnicalReport}
+            disabled={!hasCalculationResult}
+            title={
+              hasCalculationResult
+                ? "Abre o relatorio tecnico visual."
+                : "Recalcule antes de abrir o relatorio tecnico."
+            }
+          />
+
+          <TopbarButton
+            label="CSV"
+            variant="cyan"
+            onClick={onExportCsv}
+            disabled={!hasCalculationResult}
+            title={
+              hasCalculationResult
+                ? "Exporta o resultado tecnico em CSV."
+                : "Recalcule antes de exportar CSV."
+            }
+          />
+
+          <TopbarButton
+            label="PDF"
+            variant="amber"
+            onClick={onExportPdf}
+            disabled={!hasCalculationResult}
+            title={
+              hasCalculationResult
+                ? "Abre o relatorio para salvar como PDF."
+                : "Recalcule antes de gerar PDF."
+            }
+          />
 
           <ConfirmCalculateButton
             projectState={projectState}
@@ -261,3 +353,4 @@ export function Topbar({
     </header>
   );
 }
+

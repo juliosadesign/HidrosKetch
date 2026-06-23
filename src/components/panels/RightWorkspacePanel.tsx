@@ -25,6 +25,7 @@ import { PipeProperties } from "./PipeProperties";
 import { ProjectProperties } from "./ProjectProperties";
 import { PumpProperties } from "./PumpProperties";
 import { ReservoirProperties } from "./ReservoirProperties";
+import { ResultExplanationCharts } from "../charts/ResultExplanationCharts";
 import { ResultsPanel } from "./ResultsPanel";
 import { TankProperties } from "./TankProperties";
 import { ValveProperties } from "./ValveProperties";
@@ -176,6 +177,8 @@ function SimpleResultsView({
           {errorCount} erro(s) / {warningCount} alerta(s)
         </p>
       </div>
+
+      <ResultExplanationCharts result={result} variant="simple" />
     </div>
   );
 }
@@ -405,6 +408,10 @@ export function RightWorkspacePanel(props: RightWorkspacePanelProps) {
           ) : (
             <div className="space-y-4">
               <TechnicalPropertiesView {...props} />
+              <ResultExplanationCharts
+                result={props.calculationState.lastResult}
+                variant="technical"
+              />
               <ResultsPanel
                 projectState={props.projectState}
                 calculationState={props.calculationState}
