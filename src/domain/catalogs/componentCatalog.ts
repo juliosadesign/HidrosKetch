@@ -283,7 +283,17 @@ export const COMPONENT_CATALOG: ComponentCatalogItem[] = [
     description: "Adiciona carga hidráulica ao sistema.",
     defaultData: {
       headMca: DEFAULT_PUMP_HEAD_MCA,
+      availableHeadMca: DEFAULT_PUMP_HEAD_MCA,
       flowDirection: "source-to-target",
+      manufacturer: "",
+      model: "",
+      nominalFlowM3h: null,
+      powerKw: null,
+      nominalPowerKw: null,
+      efficiencyPercent: 70,
+      voltageV: "",
+      pumpNotes: "",
+      curvePoints: [],
     },
   },
 

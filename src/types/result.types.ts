@@ -29,6 +29,23 @@ export type CalculationError = {
   componentId?: string;
 };
 
+export type UserDefinedPumpResult = {
+  id: string;
+  name: string;
+  manufacturer: string | null;
+  model: string | null;
+  availableHeadMca: number | null;
+  nominalFlowM3h: number | null;
+  nominalPowerKw: number | null;
+  efficiencyPercent: number | null;
+  voltageV: string | null;
+  notes: string | null;
+  curvePoints: {
+    flowM3h: number;
+    headMca: number;
+  }[];
+};
+
 export type HydroCalculationResult = {
   status: "not_calculated" | "success" | "failed";
 
@@ -60,6 +77,10 @@ export type HydroCalculationResult = {
   monthlyEnergyCostBRL: number | null;
 
   componentResults: ComponentCalculationResult[];
+
+  // Bombas definidas manualmente no editor.
+  // Usadas para comparar a bomba instalada com a demanda do projeto.
+  userDefinedPumps: UserDefinedPumpResult[];
 
   warnings: CalculationWarning[];
   errors: CalculationError[];

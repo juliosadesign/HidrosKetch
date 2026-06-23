@@ -110,6 +110,11 @@ export type ValveComponent = BaseComponent & {
 // PUMP / BOMBA
 // -------------------------
 
+export type PumpCurvePoint = {
+  flowM3h: number;
+  headMca: number;
+};
+
 export type PumpComponent = BaseComponent & {
   kind: "pump";
   data: {
@@ -117,6 +122,16 @@ export type PumpComponent = BaseComponent & {
     flowDirection: FlowDirection;
     powerKw?: number;
     efficiencyPercent?: number;
+
+    // Sprint 20E — dados opcionais cadastrados pelo usuario no componente Bomba.
+    manufacturer?: string;
+    model?: string;
+    availableHeadMca?: number;
+    nominalFlowM3h?: number;
+    nominalPowerKw?: number;
+    voltageV?: string;
+    pumpNotes?: string;
+    curvePoints?: PumpCurvePoint[];
   };
 };
 

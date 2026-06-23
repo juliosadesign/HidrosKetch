@@ -304,10 +304,18 @@ const resultWithDate: HydroCalculationResult = {
           ...base,
           kind: "pump",
           data: {
-            headMca: getNumber(data, "headMca", 0),
+            headMca: getNumber(data, "availableHeadMca", getNumber(data, "headMca", 0)),
             flowDirection: getFlowDirection(data),
             powerKw: getOptionalNumber(data, "powerKw"),
             efficiencyPercent: getOptionalNumber(data, "efficiencyPercent"),
+            manufacturer: getOptionalString(data, "manufacturer"),
+            model: getOptionalString(data, "model"),
+            availableHeadMca: getOptionalNumber(data, "availableHeadMca"),
+            nominalFlowM3h: getOptionalNumber(data, "nominalFlowM3h"),
+            nominalPowerKw: getOptionalNumber(data, "nominalPowerKw"),
+            voltageV: getOptionalString(data, "voltageV"),
+            pumpNotes: getOptionalString(data, "pumpNotes"),
+            curvePoints: getPumpCurvePoints(data, "curvePoints"),
           },
         };
   
@@ -444,8 +452,16 @@ const resultWithDate: HydroCalculationResult = {
       .map((component) => ({
         id: component.id,
         name: component.name,
-        headMca: component.data.headMca,
+        headMca: component.data.availableHeadMca ?? component.data.headMca,
         efficiencyPercent: component.data.efficiencyPercent,
+        manufacturer: component.data.manufacturer ?? null,
+        model: component.data.model ?? null,
+        nominalFlowM3h: component.data.nominalFlowM3h ?? null,
+        nominalPowerKw:
+          component.data.nominalPowerKw ?? component.data.powerKw ?? null,
+        voltageV: component.data.voltageV ?? null,
+        notes: component.data.pumpNotes ?? null,
+        curvePoints: component.data.curvePoints ?? [],
       }));
   
     const originElevationM = findOriginElevationM(
@@ -594,6 +610,44 @@ const resultWithDate: HydroCalculationResult = {
     return typeof value === "number" && Number.isFinite(value) ? value : undefined;
   }
   
+  function getPumpCurvePoints(
+    data: Record<string, unknown>,
+    key: string
+  ): { flowM3h: number; headMca: number }[] {
+    const value = data[key];
+
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .map((point) => {
+        if (
+          typeof point === "object" &&
+          point !== null &&
+          "flowM3h" in point &&
+          "headMca" in point
+        ) {
+          const flowM3h = (point as { flowM3h?: unknown }).flowM3h;
+          const headMca = (point as { headMca?: unknown }).headMca;
+
+          if (
+            typeof flowM3h === "number" &&
+            Number.isFinite(flowM3h) &&
+            typeof headMca === "number" &&
+            Number.isFinite(headMca)
+          ) {
+            return { flowM3h, headMca };
+          }
+        }
+
+        return null;
+      })
+      .filter((point): point is { flowM3h: number; headMca: number } =>
+        Boolean(point)
+      );
+  }
+
   function getNullableNumber(
     data: Record<string, unknown>,
     key: string

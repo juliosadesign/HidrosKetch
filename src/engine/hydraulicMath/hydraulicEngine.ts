@@ -146,6 +146,19 @@ export function runHydraulicPathCalculation(
       monthlyEnergyCostBRL: energyCost.monthlyEnergyCostBRL,
 
       componentResults,
+      userDefinedPumps: input.pumps.map((pump) => ({
+        id: pump.id,
+        name: pump.name,
+        manufacturer: pump.manufacturer ?? null,
+        model: pump.model ?? null,
+        availableHeadMca: pump.headMca ?? null,
+        nominalFlowM3h: pump.nominalFlowM3h ?? null,
+        nominalPowerKw: pump.nominalPowerKw ?? null,
+        efficiencyPercent: pump.efficiencyPercent ?? null,
+        voltageV: pump.voltageV ?? null,
+        notes: pump.notes ?? null,
+        curvePoints: pump.curvePoints ?? [],
+      })),
 
       warnings: [
         {
@@ -217,6 +230,7 @@ export function runHydraulicPathCalculation(
       monthlyEnergyCostBRL: null,
 
       componentResults: [],
+      userDefinedPumps: [],
 
       warnings: [],
 

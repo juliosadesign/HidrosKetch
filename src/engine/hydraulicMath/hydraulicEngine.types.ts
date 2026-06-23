@@ -25,6 +25,18 @@ export type LocalLossComponentInput = {
     name: string;
     headMca: number;
     efficiencyPercent?: number;
+
+    // Sprint 20E — dados opcionais vindos do componente Bomba.
+    manufacturer?: string | null;
+    model?: string | null;
+    nominalFlowM3h?: number | null;
+    nominalPowerKw?: number | null;
+    voltageV?: string | null;
+    notes?: string | null;
+    curvePoints?: {
+      flowM3h: number;
+      headMca: number;
+    }[];
   };
   
   export type HydraulicPathCalculationInput = {

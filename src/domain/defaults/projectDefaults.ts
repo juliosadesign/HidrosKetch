@@ -29,6 +29,7 @@ export const EMPTY_CALCULATION_RESULT: HydroCalculationResult = {
   monthlyConsumptionKwh: null,
   monthlyEnergyCostBRL: null,
   componentResults: [],
+  userDefinedPumps: [],
   warnings: [],
   errors: [],
   assumptions: [],

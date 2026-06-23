@@ -1,10 +1,11 @@
 import { PumpCurveChart } from "../charts/PumpCurveChart";
+import { listPumpCatalog } from "../../domain/catalogs/pumpCatalog";
 import {
   buildPumpRecommendations,
   getRecommendedPump,
 } from "../../engine/pumpSelection";
-import type { PumpRecommendation, PumpRecommendationStatus } from "../../types/pump.types";
-import type { HydroCalculationResult } from "../../types/result.types";
+import type { PumpModel, PumpRecommendation, PumpRecommendationStatus } from "../../types/pump.types";
+import type { HydroCalculationResult, UserDefinedPumpResult } from "../../types/result.types";
 
 type PumpRecommendationPanelProps = {
   result: HydroCalculationResult;
@@ -20,6 +21,38 @@ function resolveRequiredFlowM3h(result: HydroCalculationResult): number | null {
   }
 
   return flowLps * 3.6;
+}
+
+function buildUserDefinedPumpModels(
+  userPumps: UserDefinedPumpResult[]
+): PumpModel[] {
+  return userPumps.map((pump) => ({
+    id: `user_${pump.id}`,
+    brand: pump.manufacturer?.trim() || "Bomba do projeto",
+    model: pump.model?.trim() || pump.name || "Bomba informada",
+    type: "generic",
+    nominalPowerCv: null,
+    nominalPowerKw: pump.nominalPowerKw,
+    minFlowM3h: null,
+    nominalFlowM3h: pump.nominalFlowM3h,
+    maxFlowM3h: pump.nominalFlowM3h,
+    minHeadMca: null,
+    nominalHeadMca: pump.availableHeadMca,
+    maxHeadMca: pump.availableHeadMca,
+    estimatedEfficiencyPercent: pump.efficiencyPercent,
+    voltageV: pump.voltageV,
+    recommendedUse: "Bomba cadastrada manualmente no componente Bomba.",
+    technicalNote:
+      pump.notes ||
+      "Dados informados pelo usuario para comparacao preliminar com a rede.",
+    source: {
+      sourceName: "Componente Bomba do projeto",
+      sourceUrl: null,
+      dataQuality: "estimated",
+      checkedAt: null,
+    },
+    curvePoints: pump.curvePoints,
+  }));
 }
 
 function formatNumber(value: number | null | undefined, decimals = 2): string {
@@ -163,12 +196,17 @@ function PumpRecommendationCard({ recommendation }: { recommendation: PumpRecomm
 export function PumpRecommendationPanel({ result }: PumpRecommendationPanelProps) {
   const requiredFlowM3h = resolveRequiredFlowM3h(result);
   const requiredHeadMca = result.totalDynamicHeadMca;
-  const recommendations = buildPumpRecommendations({
-    requiredFlowM3h,
-    requiredHeadMca,
-    estimatedElectricPowerKw: result.electricPowerKw,
-    assumedEfficiencyPercent: result.pumpEfficiencyPercent,
-  });
+  const userPumpModels = buildUserDefinedPumpModels(result.userDefinedPumps ?? []);
+  const catalogPumps = listPumpCatalog();
+  const recommendations = buildPumpRecommendations(
+    {
+      requiredFlowM3h,
+      requiredHeadMca,
+      estimatedElectricPowerKw: result.electricPowerKw,
+      assumedEfficiencyPercent: result.pumpEfficiencyPercent,
+    },
+    [...userPumpModels, ...catalogPumps]
+  );
   const recommendedPump = getRecommendedPump(recommendations);
   const secondaryRecommendations = recommendations
     .filter((recommendation) => recommendation !== recommendedPump)
@@ -183,9 +221,9 @@ export function PumpRecommendationPanel({ result }: PumpRecommendationPanelProps
           </h3>
 
           <p className="mt-2 text-xs leading-5 text-emerald-50/80">
-            A recomendação compara a vazão necessária, a altura manométrica total,
-            a potência elétrica estimada e, quando houver dados, a curva simplificada
-            da bomba por interpolação linear.
+            A recomendacao compara a vazao necessaria, a altura manometrica total,
+            a potencia eletrica estimada e, quando houver dados no componente Bomba,
+            usa a curva simplificada informada pelo usuario.
           </p>
         </div>
 
