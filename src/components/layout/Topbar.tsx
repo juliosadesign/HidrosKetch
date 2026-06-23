@@ -37,18 +37,6 @@ type TopbarProps = {
   hasCalculationResult: boolean;
 };
 
-const neutralButtonClass =
-  "rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 transition hover:border-cyan-400/50 hover:text-cyan-100";
-
-const cyanButtonClass =
-  "rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-cyan-100 transition hover:bg-cyan-500/20";
-
-const greenButtonClass =
-  "rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-100 transition hover:bg-emerald-500/20";
-
-const disabledButtonClass =
-  "disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500";
-
 function getStatusLabel(projectState: ProjectVisualState) {
   if (projectState === "calculated") return "Calculado";
   if (projectState === "outdated") return "Desatualizado";
@@ -62,62 +50,45 @@ function getStatusClass(projectState: ProjectVisualState) {
 }
 
 function getCloudMessageClass(status: CloudSaveStatus) {
-  if (status === "success") {
-    return "border-emerald-400/40 bg-emerald-500/10 text-emerald-100";
-  }
-
-  if (status === "error") {
-    return "border-red-400/40 bg-red-500/10 text-red-100";
-  }
-
-  if (status === "saving") {
-    return "border-cyan-400/40 bg-cyan-500/10 text-cyan-100";
-  }
-
+  if (status === "success") return "border-emerald-400/40 bg-emerald-500/10 text-emerald-100";
+  if (status === "error") return "border-red-400/40 bg-red-500/10 text-red-100";
+  if (status === "saving") return "border-cyan-400/40 bg-cyan-500/10 text-cyan-100";
   return "border-slate-700 bg-slate-900 text-slate-300";
 }
 
 function getLocalFileMessageClass(status: LocalProjectFileStatus) {
-  if (status === "success") {
-    return "border-emerald-400/40 bg-emerald-500/10 text-emerald-100";
-  }
-
-  if (status === "error") {
-    return "border-red-400/40 bg-red-500/10 text-red-100";
-  }
-
+  if (status === "success") return "border-emerald-400/40 bg-emerald-500/10 text-emerald-100";
+  if (status === "error") return "border-red-400/40 bg-red-500/10 text-red-100";
   return "border-slate-700 bg-slate-900 text-slate-300";
 }
 
-function TopbarButton({
+function CompactButton({
   label,
   title,
   onClick,
   disabled = false,
-  variant = "cyan",
+  tone = "default",
 }: {
   label: string;
   title: string;
   onClick: () => void;
   disabled?: boolean;
-  variant?: "neutral" | "cyan" | "green" | "violet" | "amber";
+  tone?: "default" | "cyan" | "green" | "yellow" | "violet";
 }) {
-  const variantClass = {
-    neutral: neutralButtonClass,
-    cyan: cyanButtonClass,
-    green: greenButtonClass,
-    violet:
-      "rounded-lg border border-violet-500/40 bg-violet-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-violet-100 transition hover:bg-violet-500/20",
-    amber:
-      "rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-amber-100 transition hover:bg-amber-500/20",
-  }[variant];
+  const toneClass = {
+    default: "border-slate-700 bg-slate-950 text-slate-200 hover:border-cyan-400/50 hover:text-cyan-100",
+    cyan: "border-cyan-500/40 bg-cyan-500/10 text-cyan-100 hover:bg-cyan-500/20",
+    green: "border-emerald-500/40 bg-emerald-500/10 text-emerald-100 hover:bg-emerald-500/20",
+    yellow: "border-yellow-400/60 bg-yellow-400 text-slate-950 hover:bg-yellow-300",
+    violet: "border-violet-500/40 bg-violet-500/10 text-violet-100 hover:bg-violet-500/20",
+  }[tone];
 
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`${variantClass} ${disabledButtonClass}`}
+      className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500 ${toneClass}`}
       title={title}
     >
       {label}
@@ -161,32 +132,24 @@ export function Topbar({
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
-    if (file) {
-      onImportLocalProject(file);
-    }
-
+    if (file) onImportLocalProject(file);
     event.target.value = "";
   }
 
   return (
     <header className="border-b border-slate-800 bg-slate-900/95">
       <div className="flex min-h-14 items-center gap-2 px-3 py-2">
-        <div className="flex min-w-[155px] shrink-0 items-center gap-2">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-500/15 text-xs font-bold text-cyan-300">
+        <div className="flex min-w-[150px] shrink-0 items-center gap-2">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-500/15 text-[11px] font-bold text-cyan-300">
             HS
           </div>
-
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold tracking-wide text-white">
-              HidroSketch
-            </h1>
-            <p className="truncate text-[11px] text-slate-500">
-              Redes hidraulicas
-            </p>
+            <h1 className="truncate text-sm font-semibold tracking-wide text-white">HidroSketch</h1>
+            <p className="truncate text-[11px] text-slate-500">Redes hidraulicas</p>
           </div>
         </div>
 
-        <label className="hidden min-w-[180px] max-w-[250px] items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-300 lg:flex">
+        <label className="hidden min-w-[190px] max-w-xs items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-300 lg:flex">
           <span className="shrink-0 font-semibold text-cyan-200">Projeto</span>
           <input
             value={projectName}
@@ -201,12 +164,9 @@ export function Topbar({
           <QuickComponentSearch compact onAddComponent={onAddComponent} />
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 overflow-x-auto pb-1">
+        <div className="flex shrink-0 items-center gap-1.5 overflow-x-auto pb-1">
           <span className="hidden whitespace-nowrap rounded-full border border-slate-700 px-2.5 py-1 text-[11px] text-slate-300 xl:inline-flex">
-            Status:
-            <strong className={`ml-1 ${getStatusClass(projectState)}`}>
-              {getStatusLabel(projectState)}
-            </strong>
+            Status: <strong className={getStatusClass(projectState)}>{getStatusLabel(projectState)}</strong>
           </span>
 
           {validationErrorCount > 0 && (
@@ -215,111 +175,50 @@ export function Topbar({
             </span>
           )}
 
-          <div className="hidden xl:block">
-            <SupabaseStatusBadge />
-          </div>
-
+          <div className="hidden xl:block"><SupabaseStatusBadge /></div>
           <UserMenu onUserChange={onAuthUserChange} />
 
-          <TopbarButton
-            label="Novo"
-            variant="neutral"
-            onClick={onCreateEmptyProject}
-            title="Cria um projeto vazio para comecar do zero."
-          />
-
-          <TopbarButton
-            label="Abrir"
-            variant="neutral"
-            onClick={handleSelectLocalFile}
-            title="Abre um arquivo .hidrosketch.json salvo no computador."
-          />
-
-          <TopbarButton
-            label="Baixar"
-            variant="cyan"
-            onClick={onDownloadLocalProject}
-            title="Baixa o projeto atual como arquivo local .hidrosketch.json."
-          />
-
-          <TopbarButton
+          <CompactButton label="Novo" title="Cria um projeto vazio." onClick={onCreateEmptyProject} />
+          <CompactButton label="Abrir" title="Abre arquivo .hidrosketch.json." onClick={handleSelectLocalFile} />
+          <CompactButton label="Baixar" title="Baixa o projeto atual." onClick={onDownloadLocalProject} tone="cyan" />
+          <CompactButton
             label="Arquivos"
-            variant="cyan"
+            title={isCloudUserLoggedIn ? "Abre seus projetos na nuvem." : "Entre para acessar seus projetos."}
             onClick={onOpenMyProjects}
             disabled={!isCloudUserLoggedIn}
-            title={
-              isCloudUserLoggedIn
-                ? "Abre seus arquivos e projetos salvos na nuvem."
-                : "Entre na sua conta para acessar seus projetos salvos."
-            }
+            tone="cyan"
           />
-
-          <TopbarButton
+          <CompactButton
             label={isSavingCloud ? "Salvando..." : "Nuvem"}
-            variant="green"
+            title={isCloudUserLoggedIn ? "Salva o projeto na nuvem." : "Entre para salvar na nuvem."}
             onClick={onSaveCloudProject}
             disabled={!canSaveCloud}
-            title={
-              isCloudUserLoggedIn
-                ? "Salva o projeto atual na sua conta Supabase."
-                : "Entre na sua conta para salvar projetos na nuvem."
-            }
+            tone="green"
           />
-
-          <TopbarButton
-            label="Rede"
-            variant="cyan"
-            onClick={onCreateSimpleNetwork}
-            title="Monta automaticamente um exemplo didatico simples."
-          />
-
-          <TopbarButton
-            label="Rede+"
-            variant="cyan"
-            onClick={onCreateCompleteNetwork}
-            title="Monta uma rede demonstrativa maior, com ramais e instrumentos."
-          />
-
-          <TopbarButton
+          <CompactButton label="Rede" title="Monta uma rede simples." onClick={onCreateSimpleNetwork} tone="cyan" />
+          <CompactButton label="Rede+" title="Monta uma rede completa." onClick={onCreateCompleteNetwork} tone="green" />
+          <CompactButton
             label="Relatorio"
-            variant="violet"
+            title={hasCalculationResult ? "Abre o relatorio tecnico visual." : "Recalcule antes de abrir o relatorio."}
             onClick={onOpenTechnicalReport}
             disabled={!hasCalculationResult}
-            title={
-              hasCalculationResult
-                ? "Abre o relatorio tecnico visual."
-                : "Recalcule antes de abrir o relatorio tecnico."
-            }
+            tone="violet"
           />
-
-          <TopbarButton
+          <CompactButton
             label="CSV"
-            variant="cyan"
+            title={hasCalculationResult ? "Exporta CSV tecnico." : "Recalcule antes de exportar CSV."}
             onClick={onExportCsv}
             disabled={!hasCalculationResult}
-            title={
-              hasCalculationResult
-                ? "Exporta o resultado tecnico em CSV."
-                : "Recalcule antes de exportar CSV."
-            }
+            tone="cyan"
           />
-
-          <TopbarButton
+          <CompactButton
             label="PDF"
-            variant="amber"
+            title={hasCalculationResult ? "Abre janela para salvar como PDF." : "Recalcule antes de gerar PDF."}
             onClick={onExportPdf}
             disabled={!hasCalculationResult}
-            title={
-              hasCalculationResult
-                ? "Abre o relatorio para salvar como PDF."
-                : "Recalcule antes de gerar PDF."
-            }
+            tone="default"
           />
-
-          <ConfirmCalculateButton
-            projectState={projectState}
-            onConfirmCalculate={onConfirmCalculate}
-          />
+          <ConfirmCalculateButton projectState={projectState} onConfirmCalculate={onConfirmCalculate} />
         </div>
 
         <input
@@ -334,17 +233,12 @@ export function Topbar({
       {(localProjectFileMessage || cloudSaveMessage) && (
         <div className="fixed right-4 top-16 z-50 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2">
           {localProjectFileMessage && (
-            <div
-              className={`rounded-xl border p-3 text-xs shadow-xl ${getLocalFileMessageClass(localProjectFileStatus)}`}
-            >
+            <div className={`rounded-xl border p-3 text-xs shadow-xl ${getLocalFileMessageClass(localProjectFileStatus)}`}>
               {localProjectFileMessage}
             </div>
           )}
-
           {cloudSaveMessage && (
-            <div
-              className={`rounded-xl border p-3 text-xs shadow-xl ${getCloudMessageClass(cloudSaveStatus)}`}
-            >
+            <div className={`rounded-xl border p-3 text-xs shadow-xl ${getCloudMessageClass(cloudSaveStatus)}`}>
               {cloudSaveMessage}
             </div>
           )}
@@ -353,4 +247,3 @@ export function Topbar({
     </header>
   );
 }
-

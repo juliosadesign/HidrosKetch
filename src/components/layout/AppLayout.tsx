@@ -26,6 +26,7 @@ import {
 } from "../../store/resultStore";
 
 import { buildCalculationResultFromEditor } from "../../engine/reports/buildCalculationResult";
+import { downloadCalculationCsv } from "../../engine/exportCsv";
 import { createSimpleHydraulicNetworkTemplate } from "../../editor/templates/simpleNetworkTemplate";
 import { createCompleteHydraulicNetworkTemplate } from "../../editor/templates/completeNetworkTemplate";
 import {
@@ -39,6 +40,7 @@ import {
   readHydroSketchProjectFile,
 } from "../../lib/projectFile";
 import { supabase } from "../../lib/supabaseClient";
+import { openTechnicalReportPdfPrint } from "../../lib/exportPdf";
 import type { Json } from "../../types/supabase.types";
 
 const initialNodes: HydroFlowNode[] = [];
@@ -709,6 +711,62 @@ export function AppLayout() {
     setProjectState("calculated");
   }
 
+  function handleOpenTechnicalReport() {
+    if (!calculationState.lastResult) {
+      setLocalProjectFileState({
+        status: "error",
+        message: "Recalcule o projeto antes de abrir o relatorio tecnico.",
+      });
+      return;
+    }
+
+    handleExportPdf();
+  }
+
+  function handleExportCsv() {
+    if (!calculationState.lastResult) {
+      setLocalProjectFileState({
+        status: "error",
+        message: "Recalcule o projeto antes de exportar CSV.",
+      });
+      return;
+    }
+
+    downloadCalculationCsv(calculationState.lastResult);
+    setLocalProjectFileState({
+      status: "success",
+      message: "CSV exportado com sucesso.",
+    });
+  }
+
+  function handleExportPdf() {
+    if (!calculationState.lastResult) {
+      setLocalProjectFileState({
+        status: "error",
+        message: "Recalcule o projeto antes de gerar PDF.",
+      });
+      return;
+    }
+
+    try {
+      openTechnicalReportPdfPrint({
+        projectName,
+        result: calculationState.lastResult,
+      });
+      setLocalProjectFileState({
+        status: "success",
+        message: "Relatorio aberto. Use Salvar como PDF na janela de impressao.",
+      });
+    } catch (error) {
+      setLocalProjectFileState({
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Nao foi possivel abrir o relatorio em PDF.",
+      });
+    }
+  }
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-slate-950 text-slate-100">
       <Topbar
@@ -724,13 +782,15 @@ export function AppLayout() {
         onCreateSimpleNetwork={handleCreateSimpleNetwork}
         onCreateCompleteNetwork={handleCreateCompleteNetwork}
         onAddComponent={handleAddComponent}
-        onSaveCloudProject={handleSaveCloudProject}        onOpenTechnicalReport={handleOpenTechnicalReport}
+        onSaveCloudProject={handleSaveCloudProject}
+        onOpenMyProjects={handleOpenMyProjects}        onOpenTechnicalReport={handleOpenTechnicalReport}
         onExportCsv={handleExportCsv}
         onExportPdf={handleExportPdf}
         onAuthUserChange={setAuthUser}
         cloudSaveStatus={cloudSaveState.status}
         cloudSaveMessage={cloudSaveState.message}
-        isCloudUserLoggedIn={Boolean(authUser)}        hasCalculationResult={Boolean(calculationState.lastResult)}
+        isCloudUserLoggedIn={Boolean(authUser)}
+        validationErrorCount={validationErrorCount}        hasCalculationResult={Boolean(calculationState.lastResult)}
       />
 
       <main
@@ -800,5 +860,6 @@ export function AppLayout() {
     </div>
   );
 }
+
 
 
