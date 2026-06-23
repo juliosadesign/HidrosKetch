@@ -44,7 +44,18 @@ export type UpdateSelectedNodeData = (
 ) => void;
 
 
+export type ProjectFlowInputMode = "flow" | "velocity";
+
 export type ProjectEnergySettings = {
+  // Modo de entrada do escoamento.
+  // "flow": o usuario informa diretamente a vazao principal em L/s.
+  // "velocity": o usuario informa velocidade e diametro de referencia;
+  // a vazao principal e calculada por Q = V * A.
+  flowInputMode?: ProjectFlowInputMode;
+  defaultFlowLps?: number;
+  inletVelocityMs?: number;
+  referenceDiameterMm?: number;
+
   // Altura/cota da origem usada como fallback quando não houver
   // reservatório, tanque ou nó de origem com cota definida.
   originElevationM: number;

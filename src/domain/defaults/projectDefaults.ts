@@ -63,7 +63,10 @@ export function createDefaultProject(): HydroSketchProject {
         snapEnabled: true,
       },
 
+      flowInputMode: "flow",
       defaultFlowLps: DEFAULT_FLOW_LPS,
+      inletVelocityMs: 1,
+      referenceDiameterMm: 50,
       originElevationM: 0,
       destinationElevationM: 0,
       requiredOutletPressureKpa: 0,

@@ -100,11 +100,32 @@ if (!validation.canCalculate) {
     componentId: issue.componentId,
   }));
 
+const velocityInputWarning =
+  project.settings.flowInputMode === "velocity"
+    ? [
+        {
+          id: "velocity_input_flow_resolved",
+          message:
+            "A vazao principal foi calculada a partir da velocidade de entrada por Q = V x A. Componentes com diametros diferentes recalculam a velocidade por V = Q/A.",
+        },
+      ]
+    : [];
+
 const resultWithDate: HydroCalculationResult = {
   ...calculationResult,
   calculatedAt:
     calculationResult.status === "success" ? new Date().toISOString() : null,
-  warnings: [...calculationResult.warnings, ...branchWarnings],
+  warnings: [
+    ...calculationResult.warnings,
+    ...branchWarnings,
+    ...velocityInputWarning,
+  ],
+  assumptions: [
+    ...calculationResult.assumptions,
+    project.settings.flowInputMode === "velocity"
+      ? "Vazao de entrada calculada por Q = V x A a partir da velocidade informada."
+      : "Vazao de entrada informada diretamente em L/s.",
+  ],
 };
   
     return {
@@ -115,6 +136,48 @@ const resultWithDate: HydroCalculationResult = {
     };
   }
   
+  function calculateAreaM2FromDiameterMm(diameterMm: number): number {
+    if (!Number.isFinite(diameterMm) || diameterMm <= 0) {
+      return 0;
+    }
+
+    const diameterM = diameterMm / 1000;
+    return (Math.PI * diameterM ** 2) / 4;
+  }
+
+  function calculateFlowLpsFromVelocity(
+    velocityMs: number,
+    diameterMm: number
+  ): number {
+    const areaM2 = calculateAreaM2FromDiameterMm(diameterMm);
+
+    if (!Number.isFinite(velocityMs) || velocityMs <= 0 || areaM2 <= 0) {
+      return 0;
+    }
+
+    return velocityMs * areaM2 * 1000;
+  }
+
+  function resolveProjectFlowLps(
+    energySettings: ProjectEnergySettings | undefined,
+    fallbackFlowLps: number
+  ): number {
+    if (energySettings?.flowInputMode === "velocity") {
+      const flowFromVelocityLps = calculateFlowLpsFromVelocity(
+        energySettings.inletVelocityMs ?? 0,
+        energySettings.referenceDiameterMm ?? 50
+      );
+
+      return flowFromVelocityLps > 0 ? flowFromVelocityLps : fallbackFlowLps;
+    }
+
+    const directFlowLps = energySettings?.defaultFlowLps;
+
+    return typeof directFlowLps === "number" && directFlowLps > 0
+      ? directFlowLps
+      : fallbackFlowLps;
+  }
+
   function buildTemporaryProjectFromEditor(
     nodes: HydroFlowNode[],
     edges: HydroFlowEdge[],
@@ -141,6 +204,15 @@ const resultWithDate: HydroCalculationResult = {
         settings: {
           ...project.settings,
           branchingMode: firstBranch?.branchingMode ?? project.settings.branchingMode,
+          flowInputMode: energySettings?.flowInputMode ?? project.settings.flowInputMode,
+          defaultFlowLps: resolveProjectFlowLps(
+            energySettings,
+            project.settings.defaultFlowLps ?? 2
+          ),
+          inletVelocityMs:
+            energySettings?.inletVelocityMs ?? project.settings.inletVelocityMs,
+          referenceDiameterMm:
+            energySettings?.referenceDiameterMm ?? project.settings.referenceDiameterMm,
           originElevationM:
             energySettings?.originElevationM ?? project.settings.originElevationM,
           destinationElevationM:

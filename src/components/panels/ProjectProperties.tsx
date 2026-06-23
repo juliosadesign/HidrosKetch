@@ -27,6 +27,28 @@ function readNumberInput(value: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function calculateAreaM2FromDiameterMm(diameterMm: number): number {
+  if (!Number.isFinite(diameterMm) || diameterMm <= 0) {
+    return 0;
+  }
+
+  const diameterM = diameterMm / 1000;
+  return (Math.PI * diameterM ** 2) / 4;
+}
+
+function calculateFlowLpsFromVelocity(
+  velocityMs: number,
+  diameterMm: number
+): number {
+  const areaM2 = calculateAreaM2FromDiameterMm(diameterMm);
+
+  if (!Number.isFinite(velocityMs) || velocityMs <= 0 || areaM2 <= 0) {
+    return 0;
+  }
+
+  return velocityMs * areaM2 * 1000;
+}
+
 export function ProjectProperties({
   projectState,
   calculationState,
@@ -37,6 +59,18 @@ export function ProjectProperties({
 }: ProjectPropertiesProps) {
   const geometricHeadM =
     energySettings.destinationElevationM - energySettings.originElevationM;
+  const flowInputMode = energySettings.flowInputMode ?? "flow";
+  const defaultFlowLps = energySettings.defaultFlowLps ?? 2;
+  const inletVelocityMs = energySettings.inletVelocityMs ?? 1;
+  const referenceDiameterMm = energySettings.referenceDiameterMm ?? 50;
+  const calculatedFlowFromVelocityLps = calculateFlowLpsFromVelocity(
+    inletVelocityMs,
+    referenceDiameterMm
+  );
+  const activeFlowLps =
+    flowInputMode === "velocity"
+      ? calculatedFlowFromVelocityLps
+      : defaultFlowLps;
 
   return (
     <div className="space-y-4">
@@ -49,6 +83,116 @@ export function ProjectProperties({
           Nenhum componente selecionado. Aqui aparecem os dados gerais, escala,
           grade, régua e resultados.
         </p>
+      </div>
+
+
+      <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-emerald-300">
+          Vazao e velocidade de entrada
+        </h3>
+
+        <p className="mt-2 text-xs leading-5 text-emerald-100/80">
+          Escolha se o calculo deve partir da vazao conhecida ou da velocidade
+          de entrada. Quando a velocidade for usada, o HidroSketch calcula
+          automaticamente Q = V x A pelo diametro de referencia. Depois, cada
+          acessorio recalcula sua propria velocidade pelo diametro informado.
+        </p>
+
+        <div className="mt-4 space-y-3">
+          <label className="block text-xs text-slate-400">
+            Tipo de entrada hidraulica
+            <select
+              value={flowInputMode}
+              onChange={(event) =>
+                onUpdateEnergySettings({
+                  flowInputMode:
+                    event.target.value === "velocity" ? "velocity" : "flow",
+                })
+              }
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+            >
+              <option value="flow">Informar vazao L/s</option>
+              <option value="velocity">Informar velocidade m/s</option>
+            </select>
+          </label>
+
+          {flowInputMode === "flow" ? (
+            <label className="block text-xs text-slate-400">
+              Vazao principal L/s
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={defaultFlowLps}
+                onChange={(event) =>
+                  onUpdateEnergySettings({
+                    defaultFlowLps: Math.max(
+                      0,
+                      readNumberInput(event.target.value)
+                    ),
+                  })
+                }
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block text-xs text-slate-400">
+                Velocidade de entrada m/s
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={inletVelocityMs}
+                  onChange={(event) =>
+                    onUpdateEnergySettings({
+                      inletVelocityMs: Math.max(
+                        0,
+                        readNumberInput(event.target.value)
+                      ),
+                    })
+                  }
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+                />
+              </label>
+
+              <label className="block text-xs text-slate-400">
+                Diametro de referencia mm
+                <input
+                  type="number"
+                  min={1}
+                  step="1"
+                  value={referenceDiameterMm}
+                  onChange={(event) =>
+                    onUpdateEnergySettings({
+                      referenceDiameterMm: Math.max(
+                        1,
+                        readNumberInput(event.target.value)
+                      ),
+                    })
+                  }
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+                />
+              </label>
+            </div>
+          )}
+
+          <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs leading-5 text-slate-300">
+            <div className="flex justify-between gap-4">
+              <span className="text-slate-400">Vazao usada no calculo</span>
+              <strong className="text-white">
+                {activeFlowLps.toFixed(3)} L/s
+              </strong>
+            </div>
+
+            <p className="mt-2 text-slate-400">
+              A perda localizada continua sendo h = K x V²/(2g). Se todos os
+              diametros forem iguais, a velocidade permanece constante e a perda
+              varia principalmente com K. Se o diametro mudar em algum
+              componente, o programa recalcula V = Q/A e a perda tambem muda.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4">

@@ -139,6 +139,10 @@ export function AppLayout() {
   });
 
   const [energySettings, setEnergySettings] = useState<ProjectEnergySettings>({
+    flowInputMode: "flow",
+    defaultFlowLps: 2,
+    inletVelocityMs: 1,
+    referenceDiameterMm: 50,
     originElevationM: 0,
     destinationElevationM: 0,
     requiredOutletPressureKpa: 0,
@@ -307,6 +311,10 @@ export function AppLayout() {
 
     setEnergySettings((current) => ({
       ...current,
+      flowInputMode: "flow",
+      defaultFlowLps: 2,
+      inletVelocityMs: 1,
+      referenceDiameterMm: 50,
       originElevationM: 0,
       destinationElevationM: 10,
       requiredOutletPressureKpa: 50,
@@ -351,6 +359,10 @@ export function AppLayout() {
 
     setEnergySettings((current) => ({
       ...current,
+      flowInputMode: "flow",
+      defaultFlowLps: 2.4,
+      inletVelocityMs: 1.1,
+      referenceDiameterMm: 50,
       originElevationM: 0,
       destinationElevationM: 12,
       requiredOutletPressureKpa: 50,

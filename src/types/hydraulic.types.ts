@@ -57,9 +57,20 @@ export type ProjectHydraulicSettings = {
   units: UnitSettings;
   scale: ScaleSettings;
 
+  // Entrada principal do escoamento.
+  // flow: o usuario informa a vazao diretamente.
+  // velocity: a vazao e calculada por Q = V * A usando diametro de referencia.
+  flowInputMode?: "flow" | "velocity";
+
   // Vazão principal padrão do projeto.
   // Pode começar nula até o usuário preencher.
   defaultFlowLps: number | null;
+
+  // Velocidade de entrada opcional, usada quando flowInputMode = "velocity".
+  inletVelocityMs?: number;
+
+  // Diametro de referencia para converter velocidade em vazao.
+  referenceDiameterMm?: number;
 
   // Dados geométricos gerais usados como fallback quando o editor
   // não tiver reservatório/tanque/nó de origem e destino com cotas próprias.
